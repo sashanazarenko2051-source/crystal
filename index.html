@@ -1397,7 +1397,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-const APP_VER='3.1',APP_DATE='06.11.2026';
+const APP_VER='3.2',APP_DATE='06.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:'каждый день',w:'каждую неделю',m:'каждый месяц',y:'каждый год'};
@@ -3291,7 +3291,7 @@ async function p2pJoin(id){
   yShow('💻 Подключаюсь к компьютеру…','Пара секунд. Нужен интернет на телефоне и на компьютере.',[{t:'Отмена',on:p2pClose}]);
   for(let i=0;i<50&&(typeof Peer!=='function'||!window.RTCPeerConnection);i++)await new Promise(r=>setTimeout(r,100));
   if(typeof Peer!=='function'||!window.RTCPeerConnection)return yShow('Не получилось подключиться','Это устройство не поддерживает прямое соединение. На компьютере нажмите «Нет интернета — показать коды без интернета».',[{t:'Закрыть'}]);
-  const pr=peer=new Peer({debug:0,config:P2P_CFG});let ok=false,why='';
+  const pr=peer=new Peer(p2pId(),{debug:0,config:P2P_CFG}); // свой номер — без лишнего запроса к серверуlet ok=false,why='';
   const fail=e=>{if(peer!==pr||ok)return;if(e&&e.type)why=e.type;p2pClose();
     yShow('Не получилось подключиться',(P2P_ERR[why]||'Соединение не установилось — сети телефона и компьютера не пустили его. Попробуйте, чтобы телефон был в том же Wi-Fi, что и компьютер.')+' Или на компьютере: «Нет интернета — показать коды без интернета».'+(why?` (${why})`:''),[{t:'🔄 Попробовать ещё раз',cta:1,on:()=>p2pJoin(id)},{t:'Закрыть'}])};
   const to=setTimeout(()=>fail({type:why||'timeout'}),35000);

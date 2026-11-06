@@ -3294,11 +3294,12 @@ async function p2pJoin(id){
   const pr=peer=new Peer(p2pId(),{debug:0,config:P2P_CFG}); // свой номер — без лишнего запроса к серверуlet ok=false,why='';
   const fail=e=>{if(peer!==pr||ok)return;if(e&&e.type)why=e.type;p2pClose();
     yShow('Не получилось подключиться',(P2P_ERR[why]||'Соединение не установилось — сети телефона и компьютера не пустили его. Попробуйте, чтобы телефон был в том же Wi-Fi, что и компьютер.')+' Или на компьютере: «Нет интернета — показать коды без интернета».'+(why?` (${why})`:''),[{t:'🔄 Попробовать ещё раз',cta:1,on:()=>p2pJoin(id)},{t:'Закрыть'}])};
-  const to=setTimeout(()=>fail({type:why||'timeout'}),35000);
+  const to=setTimeout(()=>fail({type:why||'timeout'}),15000);
+  const hint=setTimeout(()=>{if(peer===pr&&!ok&&$('#ydlg').open)$('#yP').textContent='Долго… Если телефон в мобильном интернете (4G) — подключите его к тому же Wi-Fi, что и компьютер: через мобильную сеть прямое соединение не проходит.'},6000);
   pr.on('error',fail);
   pr.on('open',()=>{const c=pconn=pr.connect(id,{reliable:true,serialization:'json'});
     c.on('error',()=>fail({type:'webrtc'}));c.on('close',()=>{if(!ok)fail({type:'webrtc'})});
-    c.on('open',()=>{ok=true;clearTimeout(to);
+    c.on('open',()=>{ok=true;clearTimeout(to);clearTimeout(hint);
       yShow('✓ Подключено к компьютеру','Что сделать?',[
         {t:'📥 Получить записи с ПК',cta:1,on:()=>{c.send({t:'get'});yShow('⏳ Получаю записи…','',[{t:'Отмена',on:p2pClose}])}},
         {t:'📤 Отправить мои записи на ПК',on:async()=>{await p2pSend(c,await packAll());yShow('✓ Отправлено на компьютер','Подтвердите загрузку на компьютере.',[{t:'Готово',cta:1,on:()=>setTimeout(p2pClose,3000)}])}},

@@ -2670,9 +2670,9 @@ function askPerm(){
   if(Notification.permission==='denied')return permOff('Уведомления запрещены в браузере. '+fallback);
   // Edge после нескольких закрытий окна вопроса перестаёт его показывать — тогда ответа нет
   let done=false;
-  const t=setTimeout(()=>{if(!done){done=true;permOff('Браузер не показал вопрос. '+fallback)}},5000);
-  Notification.requestPermission().then(p=>{if(done)return;done=true;clearTimeout(t);
-    if(p==='granted'){permUi();toast('✓ Уведомления включены');try{new Notification('Crystal',{body:'Уведомления работают'})}catch(e){}}
+  const t=setTimeout(()=>{if(!done){done=true;permOff('Браузер не показал вопрос. '+fallback)}},/Android|iPhone|iPad/i.test(navigator.userAgent)?30000:5000);
+  Notification.requestPermission().then(p=>{if(done&&p!=='granted')return;done=true;clearTimeout(t);
+    if(p==='granted'){permUi();toast('✓ Уведомления включены');const o={body:'Уведомления работают',icon:'icon-192.png'};if(swReg)swReg.showNotification('Crystal',o).catch(()=>{});else try{new Notification('Crystal',o)}catch(e){}}
     else permOff('Разрешение не дано. '+fallback)}).catch(()=>{if(!done){done=true;clearTimeout(t);permOff(fallback)}});
 }
 function permUi(){

@@ -1048,6 +1048,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
       <button data-v="rep"><span class="nic" style="--nt:#a78bfa"><i>📊</i></span>Отчёт</button>
       <button data-v="timer"><span class="nic" style="--nt:#34d399"><i>⏳</i></span>Таймер · секундомер</button>
       <button data-v="set"><span class="nic" style="--nt:#94a3b8"><i>⚙️</i></span>Настройки и стиль</button>
+      <button id="devBtn" type="button" title="Перенести записи на телефон по QR-коду"><span class="nic" style="--nt:#60a5fa"><i>📱</i></span>Добавить устройство</button>
     </nav>
     <button class="glass suppSide" id="suppSide" type="button"><svg class="mtg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mtgBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d2aa8"/><stop offset=".6" stop-color="#6a35a8"/><stop offset="1" stop-color="#f29a6e"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#mtgBg)"/><g stroke="#fff" stroke-opacity=".28" stroke-width=".4" stroke-linejoin="round"><polygon points="15,9 26,21 16,27" fill="#ece6fd"/><polygon points="17.5,14 23.5,21 18.5,24" fill="#6f5cc0"/><polygon points="49,9 38,21 48,27" fill="#f4f0ff"/><polygon points="46.5,14 40.5,21 45.5,24" fill="#7d69cc"/><polygon points="26,21 32,17 38,21 32,30" fill="#d8cff7"/><polygon points="32,19.5 33.6,23.5 32,27 30.4,23.5" fill="#9a7fe4"/><polygon points="16,27 26,21 32,30 24,34 13,36" fill="#c9bdf0"/><polygon points="48,27 38,21 32,30 40,34 51,36" fill="#e3dcfa"/><polygon points="13,36 24,34 28,44 19,47" fill="#b2a5e6"/><polygon points="51,36 40,34 36,44 45,47" fill="#cdc3f3"/><polygon points="24,34 32,30 32,42 28,44" fill="#eee9fe"/><polygon points="40,34 32,30 32,42 36,44" fill="#f8f6ff"/><polygon points="19,47 28,44 32,42 32,55" fill="#c7bcf0"/><polygon points="45,47 36,44 32,42 32,55" fill="#dcd4f8"/></g><polygon points="21.5,31 27.5,30 25,32.6" fill="#ff7a2e"/><polygon points="42.5,31 36.5,30 39,32.6" fill="#ff7a2e"/><polygon points="28.6,40.6 35.4,40.6 32,44.4" fill="#2a1f55"/></svg><span class="st"><b>Поддержать проект</b><small>MANTROGOR</small></span></button>
   </aside>
@@ -3217,7 +3218,8 @@ $('#qrBtn').onclick=async()=>{
 $('#qPrev').onclick=()=>{qI=(qI-1+qParts.length)%qParts.length;qDraw()};
 $('#qNext').onclick=()=>{qI=(qI+1)%qParts.length;qDraw()};
 $('#qX').onclick=()=>$('#qdlg').close();
-if(window.CrystalAndroid||/Android|iPhone|iPad/i.test(navigator.userAgent))$('#qrBtn').hidden=true;
+$('#devBtn').onclick=()=>$('#qrBtn').onclick();
+if(window.CrystalAndroid||/Android|iPhone|iPad/i.test(navigator.userAgent))$('#qrBtn').hidden=$('#devBtn').hidden=true;
 function yShow(t,p,btns){
   $('#yT').textContent=t;$('#yP').textContent=p;const B=$('#yB');B.innerHTML='';
   btns.forEach(o=>{const b=document.createElement(o.href?'a':'button');b.className=o.cta?'cta':'pill';b.textContent=o.t;if(o.href)b.href=o.href;b.onclick=()=>{$('#ydlg').close();if(o.on)o.on()};B.append(b)});

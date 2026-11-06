@@ -933,7 +933,7 @@ input::placeholder,textarea::placeholder{color:var(--mut);opacity:.55}
 .qnote{color:var(--mut);font-size:12.5px;margin:6px 4px 12px}.qst{font-weight:600;margin:0 0 4px;min-height:1.3em}#cdlg .qnote{margin:-2px 4px 6px}
 .scbox{position:relative;width:min(80vw,58vh,440px);aspect-ratio:1;margin:6px auto;border-radius:14px;overflow:hidden;background:#000}.scbox video{width:100%;height:100%;object-fit:cover;display:block}.scfr{position:absolute;inset:12%;border:3px solid var(--acc2);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}.ybtns{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}.ybtns>*{padding:12px;text-align:center;text-decoration:none}
 .mde{background:color-mix(in srgb,var(--c) 10%,var(--dlg));border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-radius:var(--r);padding:16px 18px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.mde #mTitle{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:19px;font-weight:700;padding:4px 0 8px}
+.mde #mHead{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:19px;font-weight:700;padding:4px 0 8px}
 .mde #mText{width:100%;min-height:140px;max-height:60vh;resize:none;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:15px;line-height:1.5;padding:0}
 #mList{max-height:60vh;overflow:auto;display:flex;flex-direction:column}
 .mli{display:flex;align-items:center;gap:10px;padding:3px 0}.mli input{flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:15px;padding:5px 0;border-bottom:1px solid transparent}
@@ -1227,7 +1227,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
 
   <section class="glass dayp" id="dayp">
     <div class="banner" id="permBanner"><span>Разрешите уведомления, чтобы не пропускать напоминания</span><button class="pill" id="permBtn">Разрешить</button><button class="pill" id="permX" title="Скрыть">✕</button></div>
-    <div class="dh" id="dhead"><span class="big" id="dNum"></span><div><b id="dTitle"></b><small id="dSub"></small></div></div>
+    <div class="dh"><span class="big" id="dNum"></span><div><b id="dTitle"></b><small id="dSub"></small></div></div>
     <div class="sum" id="daySum"></div>
     <div class="dmain" id="dmain"></div>
     <div class="quick" id="quick">
@@ -1350,7 +1350,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
   </form>
 </dialog>
 <dialog id="mdlg" class="mdlg"><div class="mde" id="mEd">
-  <input id="mTitle" maxlength="120" placeholder="Заголовок" autocomplete="off">
+  <input id="mHead" maxlength="120" placeholder="Заголовок" autocomplete="off">
   <textarea id="mText" maxlength="20000" placeholder="Заметка…"></textarea>
   <div id="mList"></div>
   <div class="mfoot"><small id="mUpd"></small><span class="sp"></span>
@@ -1397,7 +1397,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-const APP_VER='3.3',APP_DATE='06.11.2026';
+const APP_VER='3.4',APP_DATE='07.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:'каждый день',w:'каждую неделю',m:'каждый месяц',y:'каждый год'};
@@ -1782,7 +1782,7 @@ function renderCal(){
     const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d);
     if(i%7===0){const wt=week7(k).reduce((t,x)=>t+workOn(x),0),[sa,sz]=shift();h+=`<div class="wk" data-wk="${k}" title="Неделя ${isoWeek(d)} — нажмите, чтобы выбрать её дни"><b>${isoWeek(d)}</b>${wt?`<small>${fmtDurShort(wt)}</small>`:''}<button data-wa="fill" title="Заполнить будни недели: ${sa}–${sz}">＋</button><button data-wa="erase" title="Стереть время всей недели">🧹</button></div>`}
     const ns=notesOn(k),wm=workOn(k);
-    const hl=holOn(k),hoff=hl.some(x=>x.off),dc=dayCats[k],cls='day'+(dc?' dct':'')+(d.getMonth()!==view.getMonth()?' out':'')+(k===today?' today':'')+(k===sel?' sel':'')+' '+dayKind(k,d.getDay())+(wm&&nightOn(k)?' night':'')+(wm?' w'+(k>today?' plan':'')+(wColOn(k)?' wc':''):'')+(multi&&multi.has(k)?' pick':'');
+    const hl=holOn(k),dc=dayCats[k],cls='day'+(dc?' dct':'')+(d.getMonth()!==view.getMonth()?' out':'')+(k===today?' today':'')+(k===sel?' sel':'')+' '+dayKind(k,d.getDay())+(wm&&nightOn(k)?' night':'')+(wm?' w'+(k>today?' plan':'')+(wColOn(k)?' wc':''):'')+(multi&&multi.has(k)?' pick':'');
     const norm=settings.norm*60,cs=ns.filter(n=>n.type!=='work'||n.text);
     // сон, нейтральное и свободное — одной короткой строкой
     const oc=['sleep','neutral','free'].map(c=>{const m=ns.filter(n=>n.type==='work'&&catOf(n)===c).reduce((t,n)=>t+workMin(n),0);return m?CATS[c].icon+fmtDurShort(m):''}).filter(Boolean).join(' ');
@@ -2609,7 +2609,6 @@ function renderReport(){
   // столбцы: по дням (неделя, месяц) или по месяцам (год, всё время)
   const buckets=[],today=ymd(new Date()),byMonth=period==='year'||((period==='all'||period==='custom')&&(r.e-r.s)/864e5>62);
   if(!byMonth){
-    const spanDays=Math.round((r.e-r.s)/864e5)+1;
     for(let d=new Date(r.s);d<=r.e;d.setDate(d.getDate()+1)){const k=ymd(d);buckets.push({k,label:String(d.getDate()),wd:WDS[d.getDay()],kind:dayKind(k,d.getDay()),dc:dayCats[k],hol:holOn(k)[0],tip:`${dayLabel(k)}, ${WDS[d.getDay()]}`,t:dayBreakdown(k)||sumCats([]),today:k===today,plan:k>today})}
     $('#chartTitle').textContent='Часы по дням';
   }else{
@@ -2768,17 +2767,17 @@ function renderMList(focusIdx){
   if(focusIdx!=null){const i=L.querySelector(`[data-in="${focusIdx}"]`);if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}
 }
 function openMemo(m){
-  edM=m;{const r=memoRem(m);$('#mRemD').value=r?r.date:'';$('#mRemT').value=r?r.time:'';$('#mRemX').hidden=!r;$('#mRemS').textContent=r?'придёт уведомление и будет видно в календаре':''}$('#mTitle').value=m.title;$('#mText').value=m.text;$('#mText').hidden=!!m.items;
+  edM=m;{const r=memoRem(m);$('#mRemD').value=r?r.date:'';$('#mRemT').value=r?r.time:'';$('#mRemX').hidden=!r;$('#mRemS').textContent=r?'придёт уведомление и будет видно в календаре':''}$('#mHead').value=m.title;$('#mText').value=m.text;$('#mText').hidden=!!m.items;
   $('#mType').innerHTML=m.items?'<i class="et" style="--ec:#22d3ee">📝</i>':'<i class="et" style="--ec:#34d399">✅</i>';$('#mType').title=m.items?'Сделать обычным текстом':'Сделать списком с галочками';
   $('#mPin').classList.toggle('on',m.pin);$('#mEd').style.setProperty('--c',m.color);$('#mUpd').textContent='Изменено: '+fmtUpd(m.upd);$('#mCols').hidden=true;
   renderMList();if(!$('#mdlg').open)$('#mdlg').showModal();
   setTimeout(()=>{if(m.items&&!m.title&&m.items.length===1&&!m.items[0].t)$('#mList [data-in="0"]')?.focus();else if(!m.items){const t=$('#mText');grow(t);t.focus();t.setSelectionRange(t.value.length,t.value.length)}else $('#mTitle').focus()},30);
 }
-$('#mTitle').oninput=e=>{edM.title=e.target.value;memoTouch()};
-$('#mText').oninput=e=>{grow(e.target);edM.text=e.target.value;memoTouch()};
+$('#mHead').oninput=e=>{if(!edM)return;edM.title=e.target.value;memoTouch()};
+$('#mText').oninput=e=>{grow(e.target);if(!edM)return;edM.text=e.target.value;memoTouch()};
 $('#mList').addEventListener('input',e=>{const i=e.target.dataset.in;if(i==null)return;edM.items[+i].t=e.target.value;memoTouch()});
 $('#mList').addEventListener('keydown',e=>{const i=e.target.dataset.in;if(i==null)return;const n=+i;
-  if(e.key==='Enter'){e.preventDefault();const pos=edM.items.findIndex((x,k)=>k>n&&!x.d);const at=n+1;edM.items.splice(at,0,{t:'',d:false});memoTouch();renderMList(at)}
+  if(e.key==='Enter'){e.preventDefault();const at=n+1;edM.items.splice(at,0,{t:'',d:false});memoTouch();renderMList(at)}
   else if(e.key==='Backspace'&&!e.target.value&&edM.items.length>1){e.preventDefault();edM.items.splice(n,1);memoTouch();const prev=[...edM.items.keys()].reverse().find(k=>k<n&&!edM.items[k].d);renderMList(prev??0)}});
 let dragI=null;
 $('#mList').addEventListener('mousedown',e=>{const g=e.target.closest('.mgrip');if(g)g.parentNode.draggable=true});
@@ -2793,15 +2792,15 @@ $('#mList').addEventListener('click',e=>{
   if(t){const x=edM.items[+t.dataset.t];x.d=!x.d;memoTouch();renderMList()}
   else if(r){edM.items.splice(+r.dataset.rm,1);if(!edM.items.length)edM.items.push({t:'',d:false});memoTouch();renderMList()}
   else if(ad){edM.items.push({t:'',d:false});memoTouch();renderMList(edM.items.length-1)}});
-$('#mEd').addEventListener('click',e=>{const b=e.target.closest('[data-me]');if(!b)return;const k=b.dataset.me,m=edM;
+$('#mEd').addEventListener('click',e=>{const b=e.target.closest('[data-me]');if(!b)return;const k=b.dataset.me,m=edM;if(!m&&k!=='close')return;
   if(k==='close')$('#mdlg').close();
   else if(k==='pin'){m.pin=!m.pin;b.classList.toggle('on',m.pin);memoTouch()}
   else if(k==='color'){const C=$('#mCols');C.hidden=!C.hidden;C.innerHTML=COLORS.map(c=>`<span data-mc="${c}" style="background:${c}" class="${c===m.color?'on':''}"></span>`).join('')}
   else if(k==='del'){$('#mdlg').close();delMemo(m)}
   else if(k==='type'){if(m.items){m.text=m.items.filter(x=>x.t).map(x=>(x.d?'✓ ':'')+x.t).join('\n');m.items=null}else{m.items=m.text.split('\n').filter(x=>x.trim()).map(t=>({t:t.replace(/^✓ /,''),d:t.startsWith('✓ ')}));if(!m.items.length)m.items=[{t:'',d:false}];m.text=''}memoTouch();openMemo(m)}});
-$('#mCols').addEventListener('click',e=>{const c=e.target.closest('[data-mc]');if(!c)return;edM.color=c.dataset.mc;$('#mEd').style.setProperty('--c',edM.color);memoTouch();$('#mCols').hidden=true});
+$('#mCols').addEventListener('click',e=>{const c=e.target.closest('[data-mc]');if(!c||!edM)return;edM.color=c.dataset.mc;$('#mEd').style.setProperty('--c',edM.color);memoTouch();$('#mCols').hidden=true});
 $('#mdlg').addEventListener('click',e=>{if(e.target.id==='mdlg')$('#mdlg').close()});
-$('#mdlg').addEventListener('close',()=>{const m=edM;edM=null;if(m){if(m.items)m.items=m.items.filter((x,i)=>x.t.trim()||m.items.length===1);if(!memoFull(m).trim()){const i=memos.indexOf(m);if(i>=0){memos.splice(i,1);saveMemos()}}}renderMemos()});
+$('#mdlg').addEventListener('close',()=>{if($('#mdlg').open)return;const m=edM;edM=null;if(m){if(m.items)m.items=m.items.filter((x,i)=>x.t.trim()||m.items.length===1);if(!memoFull(m).trim()){const i=memos.indexOf(m);if(i>=0){memos.splice(i,1);saveMemos()}}}renderMemos()});
 
 // ---- ближайшее и отсчёт ----
 function updateNext(){
@@ -3227,10 +3226,15 @@ $('#suppSide').onclick=()=>$('#sdlg').showModal();
 $('#sdlgX').onclick=()=>$('#sdlg').close();
 if(window.CrystalAndroid){document.documentElement.classList.add('android');setInterval(androidSync,30000)}
 // ---- синхронизация ПК → телефон через QR-код: данные внутри ссылки после «#» (эта часть на сервер не отправляется) ----
-const SYNC_URL='https://sashanazarenko2051-source.github.io/crystal/',SYNC_CH=1000;
+const SYNC_URL='https://sashanazarenko2051-source.github.io/crystal/';
 const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=32768)s+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const unb64u=s=>{const b=atob(s.replace(/-/g,'+').replace(/_/g,'/')),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
-async function zipStr(str,un){const st=new Blob([un?unb64u(str):new TextEncoder().encode(str)]).stream().pipeThrough(un?new DecompressionStream('deflate-raw'):new CompressionStream('deflate-raw')),r=new Response(st);return un?await r.text():b64u(new Uint8Array(await r.arrayBuffer()))}
+async function zipStr(str,un){const st=new Blob([un?unb64u(str):new TextEncoder().encode(str)]).stream().pipeThrough(un?new DecompressionStream('deflate-raw'):new CompressionStream('deflate-raw'));
+  if(!un)return b64u(new Uint8Array(await new Response(st).arrayBuffer()));
+  // распаковка с пределом: поддельный код не должен раздуться в гигабайты и подвесить программу
+  const rd=st.getReader(),parts=[];let size=0;
+  for(;;){const{done,value}=await rd.read();if(done)break;size+=value.length;if(size>20e6){try{rd.cancel()}catch(e){}throw new Error('too big')}parts.push(value)}
+  return new TextDecoder().decode(await new Blob(parts).arrayBuffer())}
 let qParts=[],qI=0,qPhone=false,qAutoT=0;
 const isPhone=!!window.CrystalAndroid||/Android|iPhone|iPad/i.test(navigator.userAgent);
 async function qMake(ch){
@@ -3292,7 +3296,7 @@ async function p2pJoin(v){
   catch(e){if(my!==relayOn)return;
     return yShow('Не получилось подключиться',e.message==='expired'?'Код устарел (действует 3 часа) — откройте на компьютере «📱 Добавить устройство» заново.':`Проверьте интернет на телефоне и попробуйте ещё раз. (${e.message})`,[{t:'🔄 Попробовать ещё раз',cta:1,on:()=>p2pJoin(v)},{t:'Закрыть'}])}
   if(my!==relayOn)return;
-  yShow('✓ Подключено к компьютеру','Что сделать?',[
+  yShow('✓ Подключено к компьютеру','Что сделать? Отправляйте записи только на свой компьютер — не сканируйте чужие коды.',[
     {t:'📥 Получить записи с ПК',cta:1,on:()=>syncShow(d,false)},
     {t:'📤 Отправить мои записи на ПК',on:async()=>{yShow('⏳ Отправляю…','',[]);
       try{await relayPut(topic,await enc(await packAll(),raw),'phone');yShow('✓ Отправлено на компьютер','Подтвердите загрузку на компьютере — там должно быть открыто окно с QR-кодом.',[{t:'Готово',cta:1}])}
@@ -3354,7 +3358,7 @@ function applySync(raw){
   up(notes,raw.notes,cleanNote);up(memos,raw.memos,cleanMemo);
   if(raw.days&&typeof raw.days==='object')for(const k in raw.days)if(RX.date.test(k)&&DAYCATS[raw.days[k]])dayCats[k]=raw.days[k];
   save('cal.notes',notes);saveMemos();saveDays();
-  if(raw.set&&typeof raw.set==='object'&&!Array.isArray(raw.set))save('cal.settings',Object.assign({},settings,raw.set)); // проверка полей — при перезапуске
+  if(raw.set&&typeof raw.set==='object'&&!Array.isArray(raw.set)){const ns=Object.assign({},settings);for(const k of Object.keys(raw.set))if(/^[a-zA-Z]\w{0,30}$/.test(k)&&k!=='__proto__'&&k!=='constructor'&&k!=='prototype')ns[k]=raw.set[k];save('cal.settings',ns)} // проверка полей — при перезапуске
   try{sessionStorage.setItem('cal.synced','1')}catch(e){}
   location.reload()}
 async function syncIn(h,quiet){

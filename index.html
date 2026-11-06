@@ -993,8 +993,14 @@ select option:checked{background:color-mix(in srgb,var(--acc) 35%,var(--dlg));co
   background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 22%,transparent),color-mix(in srgb,var(--acc2) 12%,transparent))!important;transition:.15s}
 .suppSide:hover{transform:translateY(-1px);box-shadow:0 0 18px color-mix(in srgb,var(--acc) 40%,transparent)}
 .suppSide .st{display:flex;flex-direction:column;line-height:1.2}.suppSide b{font-size:15px}.suppSide small{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:.06em}
+.mtg{flex:none;width:38px;height:38px;border-radius:11px;box-shadow:0 0 14px rgba(46,242,255,.35),0 0 4px rgba(255,43,214,.4)}
+.suppSide .st small{color:#2ef2ff!important;letter-spacing:.22em!important}
+.supp .mtg{width:46px;height:46px}
+.mtgBig .mtg{width:72px;height:72px;border-radius:18px;box-shadow:0 0 28px rgba(46,242,255,.45),0 0 10px rgba(255,43,214,.5)}
+.mtgName{margin-top:10px;font-size:22px;font-weight:900;letter-spacing:.32em;background:linear-gradient(90deg,#2ef2ff,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent}
 .suppSide .nic{background:var(--grad)!important;border-color:transparent!important;box-shadow:0 0 12px color-mix(in srgb,var(--acc) 50%,transparent)}
 @media(max-width:760px){.suppSide{display:none}}
+html.android #printBtn,html.android #permBanner{display:none!important}
 .mcg button.we{color:var(--dOff)}.mcg button.vac{color:var(--dVac)}.mcg button.hol{color:var(--dHol)}
 .mcg button.on{background:var(--acc);color:#fff;font-weight:700}
 .mcg button.t{border-color:var(--acc2)}
@@ -1038,7 +1044,7 @@ select option:checked{background:color-mix(in srgb,var(--acc) 35%,var(--dlg));co
       <button data-v="timer"><span class="nic" style="--nt:#34d399"><i>⏳</i></span>Таймер · секундомер</button>
       <button data-v="set"><span class="nic" style="--nt:#94a3b8"><i>⚙️</i></span>Настройки и стиль</button>
     </nav>
-    <button class="glass suppSide" id="suppSide" type="button"><span class="nic" style="--nt:#ffb547"><i>💎</i></span><span class="st"><b>Поддержать проект</b><small>Crystal+++</small></span></button>
+    <button class="glass suppSide" id="suppSide" type="button"><svg class="mtg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#07060f"/><rect x="16" y="16" width="32" height="32" transform="rotate(45 32 32)" fill="none" stroke="#2ef2ff" stroke-width="5"/><rect x="26.5" y="26.5" width="11" height="11" transform="rotate(45 32 32)" fill="#ff2bd6"/></svg><span class="st"><b>Поддержать проект</b><small>MANTROGOR</small></span></button>
   </aside>
 
   <main class="glass main">
@@ -1190,7 +1196,7 @@ select option:checked{background:color-mix(in srgb,var(--acc) 35%,var(--dlg));co
         <button class="pill" id="testBtn">🔔 Проверить напоминание</button>
         <p>Напоминания срабатывают, пока приложение открыто — его можно свернуть.</p>
         <h3>💎 Поддержать Crystal</h3>
-        <div class="supp"><div><b>Crystal+++</b><span>Crystal бесплатный и без рекламы. Если программа помогает — поддержите проект, и он будет развиваться дальше.</span></div><button class="cta" id="suppBtn">💎 Поддержать проект</button></div>
+        <div class="supp"><svg class="mtg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#07060f"/><rect x="16" y="16" width="32" height="32" transform="rotate(45 32 32)" fill="none" stroke="#2ef2ff" stroke-width="5"/><rect x="26.5" y="26.5" width="11" height="11" transform="rotate(45 32 32)" fill="#ff2bd6"/></svg><div><b>MANTROGOR · Crystal+++</b><span>Crystal бесплатный и без рекламы. Если программа помогает — поддержите проект, и он будет развиваться дальше.</span></div><button class="cta" id="suppBtn">💎 Поддержать проект</button></div>
         <h3>Перенос записей между устройствами</h3>
         <div class="btns" style="justify-content:flex-start"><button class="pill" id="expBtn">⬇ Сохранить в файл</button><button class="pill" id="impBtn">⬆ Загрузить из файла</button></div>
         <input type="file" id="impFile" accept=".json,application/json" hidden>
@@ -1336,7 +1342,7 @@ select option:checked{background:color-mix(in srgb,var(--acc) 35%,var(--dlg));co
   <div class="mrem" id="mRem"><i class="et" style="--ec:#7c5cff">🔔</i><span>Напомнить</span><input type="date" id="mRemD"><input type="time" id="mRemT"><button type="button" class="pill" id="mRemX" hidden>✕ Убрать</button><small id="mRemS"></small></div>
 </div></dialog>
 <dialog id="sdlg" class="mdlg"><div class="mde" style="--c:var(--acc);text-align:center">
-  <div style="font-size:46px;line-height:1">💎</div><h3 style="margin:8px 0 4px;font-size:22px">Crystal+++</h3>
+  <div class="mtgBig"><svg class="mtg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#07060f"/><rect x="16" y="16" width="32" height="32" transform="rotate(45 32 32)" fill="none" stroke="#2ef2ff" stroke-width="5"/><rect x="26.5" y="26.5" width="11" height="11" transform="rotate(45 32 32)" fill="#ff2bd6"/></svg></div><div class="mtgName">MANTROGOR</div><h3 style="margin:4px 0 4px;font-size:20px">Crystal+++</h3>
   <p style="color:var(--mut);margin:0 0 14px">Спасибо, что пользуетесь Crystal! Поддержка помогает добавлять новые функции, стили и делать программу лучше.</p>
   <div class="suppg"><div><b>☕</b><span>Кофе</span></div><div><b>💎</b><span>Кристалл</span></div><div><b>👑</b><span>Crystal+++</span></div></div>
   <p style="color:var(--mut);font-size:13px;margin:14px 0">Оплата скоро появится здесь.</p>
@@ -2078,7 +2084,20 @@ function renderPins(){
 }
 $('#pinList').onclick=e=>{const p=e.target.closest('[data-pd]');if(!p)return;sel=p.dataset.pd;view=parseYmd(sel);view.setDate(1);showView('cal');setMode('m')};
 function render(){renderCal();renderList();updateNext();renderPins();updateWork();if($('#v-rep').classList.contains('on'))renderReport()}
-function persist(){save('cal.notes',notes);render()}
+function persist(){save('cal.notes',notes);render();androidSync()}
+// приложение Android: напоминания на 45 дней вперёд и таймер — в системный будильник, придут даже при закрытом приложении
+function androidSync(){
+  if(!window.CrystalAndroid)return;
+  try{const now=Date.now(),L=[];
+    for(const n of notes){if((n.type!=='rem'&&n.type!=='date')||n.rem<0)continue;
+      for(let i=0;i<45&&L.length<300;i++){const d=new Date();d.setDate(d.getDate()+i);const day=ymd(d);
+        if(!occursOn(n,day)||isDone(n,day)||(n.fired||[]).includes(day))continue;
+        const at=eventAt(n,day).getTime()-n.rem*6e4;if(at<=now)continue;
+        L.push({id:n.id+'_'+day,at,title:'⏰ '+n.name,body:(n.time||'Весь день')+(n.rem>0?' · '+remLabel(n.rem):'')+(n.text?'\n'+n.text:'')})}}
+    if(tRun&&tEnd>now)L.push({id:'timer',at:tEnd,title:'⏳ Таймер',body:$('#tLabel')?.value||'Время вышло'});
+    const j=JSON.stringify(L);if(j!==androidSync.last){androidSync.last=j;CrystalAndroid.setAlarms(j)}
+  }catch(e){}
+}
 
 let pickY=0;
 function renderMp(){
@@ -2504,7 +2523,7 @@ function reportText(){
   if(r.dates.length){L.push('','📌 Важные даты и события:');r.dates.forEach(n=>L.push(dateLine(n)))}
   return L.join('\n');
 }
-$('#copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(reportText());toast('Отчёт скопирован — вставьте в Telegram')}catch(e){toast('Не удалось скопировать')}};
+$('#copyBtn').onclick=async()=>{if(window.CrystalAndroid){CrystalAndroid.copy(reportText());toast('Отчёт скопирован');return}try{await navigator.clipboard.writeText(reportText());toast('Отчёт скопирован — вставьте в Telegram')}catch(e){toast('Не удалось скопировать')}};
 // для Excel: точка с запятой, запятая в дробях, без формул
 $('#csvBtn').onclick=()=>{
   const r=reportData(),q=v=>{v=String(v);if(/^[=+\-@]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'};
@@ -2515,10 +2534,12 @@ $('#printBtn').onclick=()=>{$('details.tbl').open=true;print()};
 $('#txtBtn').onclick=()=>download('otchet-'+ymd(new Date())+'.txt',reportText(),'text/plain');
 $('#shareBtn').onclick=async()=>{
   const t=reportText();
+  if(window.CrystalAndroid){CrystalAndroid.share(t);return}
   if(navigator.share){try{await navigator.share({title:'Отчёт',text:t});return}catch(e){if(e.name==='AbortError')return}}
   window.open('https://t.me/share/url?url='+encodeURIComponent('📅')+'&text='+encodeURIComponent(t),'_blank','noopener');
 };
 function download(name,text,type){
+  if(window.CrystalAndroid){try{CrystalAndroid.saveFile(name,text,type||'text/plain')}catch(e){toast('Не удалось сохранить')}return}
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
@@ -2866,7 +2887,7 @@ $('#tReset').onclick=()=>setTimer(tTotal);
 $('#tPresets').onclick=e=>{const b=e.target.closest('[data-q]');if(b)setTimer(+b.dataset.q)};
 
 let swStart=0,swAcc=0,swRun=false,swStopAt=0,laps=[];
-function twSave(){try{localStorage.setItem('cal.tw',JSON.stringify({tTotal,tLeft,tEnd,tRun,swStart,swAcc,swRun,swStopAt,laps:laps.slice(-200)}))}catch(e){}}
+function twSave(){setTimeout(androidSync,0);try{localStorage.setItem('cal.tw',JSON.stringify({tTotal,tLeft,tEnd,tRun,swStart,swAcc,swRun,swStopAt,laps:laps.slice(-200)}))}catch(e){}}
 function twLoad(){try{const x=JSON.parse(localStorage.getItem('cal.tw')||'null');if(!x)return;const n=v=>Number.isFinite(+v)?+v:0;
   tTotal=n(x.tTotal);tLeft=n(x.tLeft);tEnd=n(x.tEnd);tRun=!!x.tRun;swStart=n(x.swStart);swAcc=n(x.swAcc);swRun=!!x.swRun;swStopAt=n(x.swStopAt);laps=Array.isArray(x.laps)?x.laps.map(n):[];
   $('#tdd').value=Math.floor(tTotal/86400);$('#th').value=Math.floor(tTotal%86400/3600);$('#tm').value=Math.floor(tTotal%3600/60);$('#ts').value=Math.floor(tTotal%60);
@@ -3004,7 +3025,8 @@ twLoad();
 $('#suppBtn').onclick=()=>$('#sdlg').showModal();
 $('#suppSide').onclick=()=>$('#sdlg').showModal();
 $('#sdlgX').onclick=()=>$('#sdlg').close();
-permUi();render();loop();
+if(window.CrystalAndroid){document.documentElement.classList.add('android');setInterval(androidSync,30000)}
+permUi();render();loop();androidSync();
 try{if(!localStorage.getItem('cal.mig2')){localStorage.setItem('cal.mig2','1');const t0=ymd(new Date());
   const bad=n=>n.type==='work'&&catOf(n)==='work'&&n.date>t0&&dayCats[n.date]!=='work'&&(OFFCATS.includes(dayCats[n.date])||dayKind(n.date,parseYmd(n.date).getDay())!=='');
   const rm=notes.filter(bad);if(rm.length){notes=notes.filter(n=>!rm.includes(n));persist();const dn=new Set(rm.map(n=>n.date)).size;

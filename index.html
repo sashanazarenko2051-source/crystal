@@ -904,7 +904,7 @@ input::placeholder,textarea::placeholder{color:var(--mut);opacity:.55}
 #bars .dl{position:absolute;top:calc(100% + 5px);left:0;right:0;text-align:center;font-size:10.5px;font-weight:500;color:var(--mut);line-height:1.1}
 #bars .dl small{display:block;font-size:9px;opacity:.75}
 .appver{position:fixed;left:50%;bottom:3px;transform:translateX(-50%);font-size:11px;color:var(--mut);opacity:.6;pointer-events:none;font-family:var(--mono);letter-spacing:.04em;z-index:1}
-@media(max-width:760px){.appver{display:none}}
+@media(max-width:1100px),(max-height:700px){.appver{display:none}}
 #rQuick{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 #rQuick .rqg{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--soft);padding:2px}
 #rQuick .rqg em{font-style:normal;font-size:12px;color:var(--mut);padding:0 8px 0 10px}
@@ -1603,7 +1603,8 @@ function toast(t,undo){
 }
 
 // окно программы вылезло за край экрана — вернуть на место
-function fitWindow(){try{const L=screen.availLeft||0;if(screenX<L-12||screenX+outerWidth>L+screen.availWidth+12){moveTo(L,screen.availTop||0);resizeTo(screen.availWidth,screen.availHeight)}}catch(e){}}
+// при запуске — на весь экран: Edge иногда открывает окно программы маленьким или за краем экрана
+function fitWindow(){try{const L=screen.availLeft||0,T=screen.availTop||0,aw=screen.availWidth,ah=screen.availHeight;if(screenX<L-12||screenY<T-12||screenX+outerWidth>L+aw+12||outerWidth<aw*.9||outerHeight<ah*.85){moveTo(L,T);resizeTo(aw,ah)}}catch(e){}}
 fitWindow();addEventListener('load',()=>setTimeout(fitWindow,300));
 
 // ---- стили ----

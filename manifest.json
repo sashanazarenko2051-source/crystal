@@ -1,6 +1,6 @@
 {
-  "name": "Crystal",
-  "short_name": "Crystal",
+  "name": "Gemday",
+  "short_name": "Gemday",
   "description": "Календарь, учёт времени, заметки и напоминания",
   "start_url": "./",
   "display": "standalone",

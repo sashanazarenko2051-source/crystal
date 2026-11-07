@@ -799,6 +799,8 @@ tr.tot td{border-top:2px solid var(--line);font-weight:700}
 .ctxc button.on{background:color-mix(in srgb,var(--dc) 30%,transparent);border-color:var(--dc);box-shadow:0 0 10px color-mix(in srgb,var(--dc) 40%,transparent)}
 .ctxc{display:flex;gap:3px;padding:2px 6px 6px;flex-wrap:wrap}
 .day .dci{font-size:13px;margin-right:auto;margin-left:2px;line-height:1}
+/* часы не вылезают за край дня: при нехватке места сжимаются значки, а не часы */
+.day .top{min-width:0;overflow:hidden}.day .top .dci{min-width:0;overflow:hidden;white-space:nowrap;flex:0 1 auto}.day .top .hrs{flex:none;letter-spacing:-.02em}.day .top .n{flex:none}
 .day.dct{box-shadow:inset 0 -3px 0 var(--dc)}
 .day.dct:not(.w){background:color-mix(in srgb,var(--dc) 9%,var(--soft))}
 .ymd i.dc:not(.h){box-shadow:inset 0 -3px 0 var(--dcc)}
@@ -1217,6 +1219,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
         <div class="supp"><i class="mtg" aria-hidden="true"></i><div><b>MANTROGOR · Crystal+++</b><span>Crystal бесплатный и без рекламы. Если программа помогает — поддержите проект, и он будет развиваться дальше.</span></div><button class="cta" id="suppBtn">💎 Поддержать проект</button></div>
         <h3>Перенос записей между устройствами</h3>
         <div class="btns" style="justify-content:flex-start"><button class="pill" id="qrBtn">📱 На телефон по QR-коду</button><button class="pill" id="pcBtn" hidden>💻 Подключиться к ПК</button><button class="pill" id="expBtn">⬇ Сохранить в файл</button><button class="pill" id="impBtn">⬆ Загрузить из файла</button></div>
+        <div class="sw" id="linkBox" hidden><span>🔔 Напоминания общие с другим устройством — задачи и даты приходят и туда, и сюда</span><button class="pill" id="linkOff">Отвязать</button></div>
         <input type="file" id="impFile" accept=".json,application/json" hidden>
         <p>📱 QR-код: наведите камеру телефона — записи, заметки, праздники и настройки откроются на телефоне. Или сохраните файл на одном устройстве и загрузите на другом.</p>
         <h3>Опасная зона</h3>
@@ -1397,7 +1400,7 @@ html.android #printBtn,html.android #permBanner{display:none!important}
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-const APP_VER='3.4',APP_DATE='07.11.2026';
+const APP_VER='3.5',APP_DATE='07.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:'каждый день',w:'каждую неделю',m:'каждый месяц',y:'каждый год'};
@@ -2224,18 +2227,19 @@ function renderPins(){
 }
 $('#pinList').onclick=e=>{const p=e.target.closest('[data-pd]');if(!p)return;sel=p.dataset.pd;view=parseYmd(sel);view.setDate(1);showView('cal');setMode('m')};
 function render(){renderCal();renderList();updateNext();renderPins();updateWork();if($('#v-rep').classList.contains('on'))renderReport()}
-function persist(){save('cal.notes',notes);render();androidSync()}
+function persist(){save('cal.notes',notes);render();androidSync();linkPush()}
 // приложение Android: напоминания на 45 дней вперёд и таймер — в системный будильник, придут даже при закрытом приложении
-function androidSync(){
-  if(!window.CrystalAndroid)return;
-  try{const now=Date.now(),L=[];
+function alarmList(withTimer){const now=Date.now(),L=[];
     for(const n of notes){if((n.type!=='rem'&&n.type!=='date')||n.rem<0)continue;
       for(let i=0;i<45&&L.length<300;i++){const d=new Date();d.setDate(d.getDate()+i);const day=ymd(d);
         if(!occursOn(n,day)||isDone(n,day)||(n.fired||[]).includes(day))continue;
         const at=eventAt(n,day).getTime()-n.rem*6e4;if(at<=now)continue;
         L.push({id:n.id+'_'+day,at,title:'⏰ '+n.name,body:(n.time||'Весь день')+(n.rem>0?' · '+remLabel(n.rem):'')+(n.text?'\n'+n.text:'')})}}
-    if(tRun&&tEnd>now)L.push({id:'timer',at:tEnd,title:'⏳ Таймер',body:$('#tLabel')?.value||'Время вышло'});
-    const j=JSON.stringify(L);if(j!==androidSync.last){androidSync.last=j;CrystalAndroid.setAlarms(j)}
+    if(withTimer&&tRun&&tEnd>now)L.push({id:'timer',at:tEnd,title:'⏳ Таймер',body:$('#tLabel')?.value||'Время вышло'});
+    return L}
+function androidSync(){
+  if(!window.CrystalAndroid)return;
+  try{const L=alarmList(true),j=JSON.stringify(L);if(j!==androidSync.last){androidSync.last=j;CrystalAndroid.setAlarms(j)}
   }catch(e){}
 }
 
@@ -3271,7 +3275,8 @@ async function p2pHost(){
   if(!$('#qdlg').open)$('#qdlg').showModal();
   try{
     if(!window.crypto||!crypto.subtle)throw new Error('nocrypto');
-    const topic='crys-'+rnd(24),raw=crypto.getRandomValues(new Uint8Array(32)),id=await relayPut(topic,await enc(await packAll(),raw),'pc');
+    if(!link)linkSave('crys-'+rnd(24),b64u(crypto.getRandomValues(new Uint8Array(32))));
+    const topic=link.topic,raw=unb64u(link.key),id=await relayPut(topic,await enc(await packAll(),raw),'pc');
     if(my!==relayOn)return;
     qParts=[`${SYNC_URL}#n=${topic}.${id}.${b64u(raw)}`];qI=0;qDrawCode();qStatus('📱 Наведите камеру телефона на код');
     const es=relayES=new EventSource(`${RELAY}${topic}/sse`);
@@ -3296,6 +3301,7 @@ async function p2pJoin(v){
   catch(e){if(my!==relayOn)return;
     return yShow('Не получилось подключиться',e.message==='expired'?'Код устарел (действует 3 часа) — откройте на компьютере «📱 Добавить устройство» заново.':`Проверьте интернет на телефоне и попробуйте ещё раз. (${e.message})`,[{t:'🔄 Попробовать ещё раз',cta:1,on:()=>p2pJoin(v)},{t:'Закрыть'}])}
   if(my!==relayOn)return;
+  if(/^crys-[a-z0-9]{24}$/.test(topic))linkSave(topic,k);
   yShow('✓ Подключено к компьютеру','Что сделать? Отправляйте записи только на свой компьютер — не сканируйте чужие коды.',[
     {t:'📥 Получить записи с ПК',cta:1,on:()=>syncShow(d,false)},
     {t:'📤 Отправить мои записи на ПК',on:async()=>{yShow('⏳ Отправляю…','',[]);
@@ -3317,6 +3323,46 @@ $('#qOff').onclick=()=>{p2pClose();qOpen(false)};
 $('#qAuto').onclick=()=>qSetAuto(!qAutoT);
 $('#qdlg').addEventListener('close',()=>{qSetAuto(false);if(!$('#ydlg').open)p2pClose()});
 $('#qCam').onclick=()=>{$('#qdlg').close();scanOpen('user')};
+// ---- общие напоминания: связанные устройства (ПК ↔ телефон) обмениваются задачами и датами через ntfy.sh, зашифрованно ----
+// связь создаётся при подключении по QR-коду; телефон (APK) забирает новое и при закрытом приложении (~раз в 15 мин)
+const devId=(()=>{try{let d=localStorage.getItem('cal.dev');if(!/^[a-z0-9]{12}$/.test(d||'')){d=rnd(12);localStorage.setItem('cal.dev',d)}return d}catch(e){return 'x'}})();
+let link=(()=>{const x=load('cal.link',null);return x&&/^crys-[a-z0-9]{24}$/.test(x.topic)&&/^[A-Za-z0-9_-]{43}$/.test(x.key)?{topic:x.topic,key:x.key,last:/^[A-Za-z0-9]{1,20}$/.test(x.last||'')?x.last:''}:null})();
+const remOf=()=>notes.filter(n=>n.type==='rem'||n.type==='date');
+function linkBridge(){try{if(window.CrystalAndroid&&CrystalAndroid.setLink)CrystalAndroid.setLink(link?JSON.stringify({topic:link.topic,key:link.key,dev:devId}):'')}catch(e){}}
+function linkSave(topic,key){if(link&&link.topic===topic&&link.key===key)return;link={topic,key,last:''};save('cal.link',link);linkBridge();linkUi();linkPush(true);linkPull()}
+function linkUi(){const b=$('#linkBox');if(b)b.hidden=!link}
+let linkT=0,linkBusy=false;
+function linkPush(force){
+  try{if(!link||linkBusy)return}catch(e){return} // при запуске программы связь ещё не прочитана
+  clearTimeout(linkT);
+  linkT=setTimeout(async()=>{try{
+    const R=remOf(),sig=JSON.stringify(R),day=ymd(new Date());
+    if(!force&&sig===linkPush.sig&&linkPush.day===day)return;
+    const prev=load('cal.linkIds',[]),ids=R.map(n=>n.id),del=Array.isArray(prev)?prev.filter(i=>!ids.includes(i)).slice(0,500):[];
+    const body='c1.'+b64u(await enc(await zipStr(JSON.stringify({v:1,dev:devId,t:Date.now(),notes:R,del,alarms:alarmList(false)})),unb64u(link.key)));
+    const r=await fetch(`${RELAY}${link.topic}?tags=rem`,{method:'PUT',body});if(!r.ok)return;
+    linkPush.sig=sig;linkPush.day=day;save('cal.linkIds',ids)}catch(e){}},force?100:2500)}
+async function linkPull(){
+  if(!link||linkBusy||!navigator.onLine)return;linkBusy=true;
+  try{const r=await fetch(`${RELAY}${link.topic}/json?poll=1&since=${link.last||'12h'}`);if(!r.ok)return;
+    const raw=unb64u(link.key);let changed=false,last=link.last;
+    for(const line of (await r.text()).split('\n')){if(!line.trim())continue;let m;try{m=JSON.parse(line)}catch(e){continue}
+      if(m.event!=='message'||typeof m.id!=='string')continue;last=m.id;
+      if(!Array.isArray(m.tags)||!m.tags.includes('rem')||typeof m.message!=='string'||!m.message.startsWith('c1.'))continue;
+      let p;try{p=JSON.parse(await zipStr(await dec(unb64u(m.message.slice(3)),raw),true))}catch(e){continue}
+      if(!p||p.dev===devId||!Array.isArray(p.notes))continue;
+      const del=new Set(Array.isArray(p.del)?p.del.filter(x=>typeof x==='string'):[]);
+      const before=notes.length;notes=notes.filter(n=>!(del.has(n.id)&&(n.type==='rem'||n.type==='date')));if(notes.length!==before)changed=true;
+      const ix=new Map(notes.map((n,i)=>[n.id,i]));
+      for(const n of cleanList(p.notes,cleanNote)){if(n.type!=='rem'&&n.type!=='date')continue;
+        if(ix.has(n.id)){const o=notes[ix.get(n.id)];if(JSON.stringify(o)!==JSON.stringify(n)){notes[ix.get(n.id)]=n;changed=true}}else{ix.set(n.id,notes.length);notes.push(n);changed=true}}}
+    if(last!==link.last){link.last=last;save('cal.link',link)}
+    if(changed){save('cal.notes',notes);render();androidSync();linkPush.sig=JSON.stringify(remOf());save('cal.linkIds',remOf().map(n=>n.id));toast('🔔 Напоминания обновлены с другого устройства')}
+  }catch(e){}finally{linkBusy=false}}
+setInterval(linkPull,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)linkPull()});
+addEventListener('load',()=>{linkUi();linkBridge();setTimeout(()=>{linkPull();linkPush()},1500)});
+$('#linkOff').onclick=()=>{link=null;try{localStorage.removeItem('cal.link');localStorage.removeItem('cal.linkIds')}catch(e){}linkBridge();linkUi();toast('Устройства отвязаны')};
 // ---- телефон: «Подключиться к ПК» ----
 $('#pcBtn').onclick=()=>$('#cdlg').showModal();
 $('#cX').onclick=()=>$('#cdlg').close();

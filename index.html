@@ -489,7 +489,7 @@ td.c{color:var(--mut)}
 .tog::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .tog:checked{background:var(--acc)}.tog:checked::after{left:22px}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-@media(max-width:700px){.themes{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.themes button{border-radius:10px}.themes button div{height:40px!important}.themes button div i{height:5px;left:6px;right:6px}.themes button div i:nth-child(1){top:8px!important}.themes button div i:nth-child(2){top:17px!important}.themes button div i:nth-child(3){top:26px!important}.themes button span{font-size:10.5px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sw{flex-wrap:wrap;gap:8px}.sw>span:first-child{flex:1 1 150px;min-width:0}.sw select{max-width:100%;min-width:0}.snd{flex-wrap:wrap;max-width:100%}.wdsel{flex-wrap:wrap}.sw .wdsel{margin-top:4px}.app{padding-bottom:calc(160px + env(safe-area-inset-bottom))!important}}
+@media(max-width:700px){.themes{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.themes button{border-radius:10px}.themes button div{height:40px!important}.themes button div i{height:5px;left:6px;right:6px}.themes button div i:nth-child(1){top:8px!important}.themes button div i:nth-child(2){top:17px!important}.themes button div i:nth-child(3){top:26px!important}.themes button span{font-size:10.5px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sw{flex-wrap:wrap;gap:8px}.sw>span:first-child{flex:1 1 150px;min-width:0}.sw select{max-width:100%;min-width:0}.snd{flex-wrap:wrap;max-width:100%}.wdsel{flex-wrap:wrap}.sw .wdsel{margin-top:4px}.app{padding-bottom:calc(160px + env(safe-area-inset-bottom))!important}.cstat{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}.cstat div{padding:8px!important;border-radius:12px!important}.cstat b{font-size:16px!important}.cstat span{font-size:10.5px!important;line-height:1.25}#dsdlg .cats{grid-template-columns:repeat(3,minmax(0,1fr))}#dsdlg .mde{max-height:calc(100dvh - 24px);overflow:auto}.mfoot{flex-wrap:wrap;row-gap:6px}.mfoot .pill{flex:1 1 auto}.mrem{flex-wrap:wrap}}
 
 .themes button{border:2px solid var(--line);border-radius:14px;padding:0;overflow:hidden;background:none;text-align:left;transition:.15s}
 .themes button.on{border-color:var(--acc);box-shadow:var(--glow)}
@@ -588,7 +588,7 @@ dialog .sub{color:var(--mut);font-size:14px;margin-bottom:12px}
 .rqk button.on{border-color:var(--acc);color:var(--acc);font-weight:600;background:color-mix(in srgb,var(--acc) 12%,transparent)}
 .rcust{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:14px}
 .rcust input{padding:8px 10px;border-radius:var(--rs);border:1px solid var(--line);background:var(--input);color:var(--text);font-size:14px}
-.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}.cats button{min-width:0;overflow-wrap:anywhere}
 .cats button{border:1px solid var(--line);background:var(--soft);border-radius:var(--rs);padding:9px 4px;font-size:13px;transition:.15s}
 .cats button.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 18%,transparent);color:var(--text);font-weight:600}
 .wcat{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
@@ -877,7 +877,7 @@ tr.tot td{border-top:2px solid var(--line);font-weight:700}
 .note .acts{flex-wrap:wrap}.note .acts button{white-space:nowrap}
 @media(max-width:760px){.pins{order:5}body.nocal .pins{display:none}}
 /* ---- выбор дней в окне записи ---- */
-.wdsel{display:flex;gap:4px;margin-top:10px}
+.wdsel{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;max-width:100%;min-width:0}
 .dtoggle{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:10px 12px;border-radius:var(--rs);border:1px dashed var(--line);background:var(--soft);color:var(--text);font-size:14px;text-align:left}
 .dtoggle span{flex:1;min-width:0}
 .dtoggle b{color:var(--acc);font-weight:600;white-space:nowrap}
@@ -1203,7 +1203,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
 .bcard .bstat:not(:empty){margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#22c55e 14%,transparent);border:1px solid color-mix(in srgb,#22c55e 40%,var(--line));font-size:14px;line-height:1.5}
 .bact .pill.on{background:linear-gradient(90deg,#e11d48,#f472b6);color:#fff;border-color:transparent}
 .proup{background:linear-gradient(120deg,color-mix(in srgb,#f472b6 18%,transparent),color-mix(in srgb,#ffbe46 14%,transparent))!important;border:1px solid color-mix(in srgb,#f472b6 40%,var(--line))}.proup small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
-.fjobs{margin-top:6px}.fjobs button{font-size:12.5px}.jobin{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:260px}.jobin input{width:100%;box-sizing:border-box}.sjobs{flex-wrap:wrap;gap:8px}
+.fjobs{margin-top:6px}.fjobs button{font-size:12.5px}.jobin{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;flex:1 1 220px;min-width:0;max-width:100%}.jobin input{width:100%;box-sizing:border-box}.sjobs{flex-wrap:wrap;gap:8px}
 .day.dcol{background:color-mix(in srgb,var(--dcol) 26%,var(--soft))!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dcol) 55%,transparent)}.dsrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.dsrow label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.dsrow input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--text);font:inherit;color-scheme:dark}#partCv{max-width:min(100%,46vh);height:auto}.dsl{display:block;color:var(--mut);margin:10px 0 6px}.dscols span{width:26px;height:26px}.dscols span:first-child{display:grid;place-items:center;background:var(--soft);font-size:12px}
 .prolist{margin:8px 0 0;padding-left:18px;color:var(--mut);font-size:14px;line-height:1.6;text-align:left}
 
@@ -3451,7 +3451,18 @@ $('#holOrthIn').onchange=e=>{settings.holOrth=e.target.checked;save('cal.setting
 $('#sound').onchange=e=>{settings.sound=e.target.checked;save('cal.settings',settings)};
 
 // ---- экспорт / импорт ----
-$('#expBtn').onclick=()=>download('crystal-'+ymd(new Date())+'.json',JSON.stringify({notes,memos,days:dayCats},null,1),'application/json');
+// всё содержимое программы: записи, заметки, дни, настройки, цикл, деньги, цвета дней, обложки (до ~3 МБ)
+function packObj(withImg){const o={v:2,notes,memos,days:dayCats,set:settings,cyc,money:mlog,dcol:dayCol};
+  if(withImg){let sz=0;const im={};for(const n of notes){const v=IMGS[n.id];if(!v)continue;sz+=v.length;if(sz>3e6)break;im[n.id]=v}o.imgs=im}return o}
+// принять «остальное» (цикл, деньги, цвета, обложки) — объединить с тем, что уже есть; проверка полей — при перезапуске
+function mergeExtra(raw){let ch=false;const ob=x=>x&&typeof x==='object'&&!Array.isArray(x),BAD=/^(__proto__|constructor|prototype)$/,
+    mix=(a,b)=>{const o={};for(const x of [a,b])if(ob(x))for(const k of Object.keys(x))if(!BAD.test(k))o[k]=x[k];return o};
+  if(ob(raw.cyc)){const cur=load('cal.cyc',{})||{},m=mix(cur,raw.cyc);m.per=[...new Set([...(Array.isArray(cur.per)?cur.per:[]),...(Array.isArray(raw.cyc.per)?raw.cyc.per:[])])].filter(k=>typeof k==='string');m.day=mix(cur.day,raw.cyc.day);save('cal.cyc',m);ch=true}
+  if(Array.isArray(raw.money)){const L=cleanList(load('cal.money',[]),cleanMoney),ix=new Set(L.map(x=>x.id));cleanList(raw.money,cleanMoney).forEach(x=>{if(!ix.has(x.id)){L.push(x);ix.add(x.id)}});save('cal.money',L);ch=true}
+  if(ob(raw.dcol)){save('cal.dcol',mix(load('cal.dcol',{}),raw.dcol));ch=true}
+  if(ob(raw.imgs)){const cur=mix(load('cal.imgs',{}),{});for(const k of Object.keys(raw.imgs))if(RX.id.test(k)&&typeof raw.imgs[k]==='string'&&raw.imgs[k].length<130000)cur[k]=raw.imgs[k];save('cal.imgs',cur);ch=true}
+  return ch}
+$('#expBtn').onclick=()=>download('gemday-'+ymd(new Date())+'.json',JSON.stringify(packObj(true)),'application/json');
 $('#impBtn').onclick=()=>$('#impFile').click();
 $('#impFile').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
@@ -3463,6 +3474,7 @@ $('#impFile').onchange=async e=>{
     const ids=new Set(notes.map(n=>n.id));
     cleanList(arr,cleanNote).forEach(n=>{if(!ids.has(n.id)){notes.push(n);ids.add(n.id);added++}});
     persist();toast(T`Добавлено записей: ${added}`+(madd?T`, заметок: ${madd}`:''));
+    if(mergeExtra(raw)){toast(T('✓ Загружено всё: записи, цикл, доходы и расходы, цвета дней, обложки'));setTimeout(()=>location.reload(),1200)}
   }catch(err){toast(T('Не удалось прочитать файл'))}
   e.target.value='';
 };
@@ -3790,7 +3802,7 @@ async function zipStr(str,un){const st=new Blob([un?unb64u(str):new TextEncoder(
 let qParts=[],qI=0,qPhone=false,qAutoT=0;
 const isPhone=!!window.CrystalAndroid||/Android|iPhone|iPad/i.test(navigator.userAgent);
 async function qMake(ch){
-  const d=await zipStr(JSON.stringify({v:1,notes,memos,days:dayCats,set:settings})),id=Math.random().toString(36).slice(2,8).padEnd(6,'0'),n=Math.ceil(d.length/ch);
+  const d=await zipStr(JSON.stringify(packObj(false))),id=Math.random().toString(36).slice(2,8).padEnd(6,'0'),n=Math.ceil(d.length/ch);
   if(n>60)throw new Error('big');
   return Array.from({length:n},(_,i)=>`${SYNC_URL}#s=${id}.${i+1}.${n}.${d.slice(i*ch,(i+1)*ch)}`)}
 function qSetAuto(on){clearInterval(qAutoT);qAutoT=on&&qParts.length>1?setInterval(()=>{if(!$('#qdlg').open)return qSetAuto(false);qI=(qI+1)%qParts.length;qDraw()},1500):0;$('#qAuto').textContent=qAutoT?T('⏸ Стоп'):T('▶ Листать сами')}
@@ -3799,7 +3811,7 @@ async function qOpen(phone){
   try{qPhone=phone;qP2P=false;qParts=await qMake(phone?600:1000);qI=0;qDraw();if(!$('#qdlg').open)$('#qdlg').showModal();qSetAuto(true)}
   catch(e){toast(e.message==='big'?T('⚠ Слишком много записей для QR-кода — перенесите файлом'):T('⚠ Не удалось сделать QR-код'))}}
 // ---- один QR-код: записи идут через ntfy.sh, зашифрованные AES-GCM ключом, который есть только в QR-коде (файл живёт там до 3 часов) ----
-const RELAY='https://ntfy.sh/',packAll=()=>zipStr(JSON.stringify({v:1,notes,memos,days:dayCats,set:settings}));
+const RELAY='https://ntfy.sh/',packAll=()=>zipStr(JSON.stringify(packObj(true)));
 let relayES=null,relayOn=0;
 function p2pClose(){relayOn++;try{if(relayES)relayES.close()}catch(e){}relayES=null}
 const rnd=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>'abcdefghijklmnopqrstuvwxyz0123456789'[b%36]).join('');
@@ -3893,9 +3905,10 @@ function linkPush(force){
 async function linkPull(){
   if(!link||linkBusy||!navigator.onLine)return;linkBusy=true;
   try{const r=await fetch(`${RELAY}${link.topic}/json?poll=1&since=${link.last||'12h'}`);if(!r.ok)return;
-    const raw=unb64u(link.key);let changed=false,last=link.last;
+    const raw=unb64u(link.key);let changed=false,last=link.last;const allQ=[];
     for(const line of (await r.text()).split('\n')){if(!line.trim())continue;let m;try{m=JSON.parse(line)}catch(e){continue}
       if(m.event!=='message'||typeof m.id!=='string')continue;last=m.id;
+      if(Array.isArray(m.tags)&&m.tags.includes('all')){const a=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(m.attachment&&m.attachment.url||'');if(a)allQ.push(a[1]);continue}
       if(!Array.isArray(m.tags)||!m.tags.includes('rem')||typeof m.message!=='string'||!m.message.startsWith('c1.'))continue;
       let p;try{p=JSON.parse(await zipStr(await dec(unb64u(m.message.slice(3)),raw),true))}catch(e){continue}
       if(!p||p.dev===devId||!Array.isArray(p.notes))continue;
@@ -3904,9 +3917,37 @@ async function linkPull(){
       const ix=new Map(notes.map((n,i)=>[n.id,i]));
       for(const n of cleanList(p.notes,cleanNote)){if(n.type!=='rem'&&n.type!=='date')continue;
         if(ix.has(n.id)){const o=notes[ix.get(n.id)];if(JSON.stringify(o)!==JSON.stringify(n)){notes[ix.get(n.id)]=n;changed=true}}else{ix.set(n.id,notes.length);notes.push(n);changed=true}}}
+    // полное содержимое с другого устройства: берём самое свежее чужое
+    for(let i=allQ.length-1;i>=0;i--){let p;try{p=JSON.parse(await zipStr(await relayGet(allQ[i],raw),true))}catch(e){continue}
+      if(!p||typeof p!=='object'||p.dev===devId)continue;try{allApply(p)}catch(e){}break}
     if(last!==link.last){link.last=last;save('cal.link',link)}
     if(changed){save('cal.notes',notes);render();androidSync();linkPush.sig=JSON.stringify(remOf());save('cal.linkIds',remOf().map(n=>n.id));toast(T('🔔 Напоминания обновлены с другого устройства'))}
   }catch(e){}finally{linkBusy=false}}
+// ---- полная синхронизация связанных устройств: записи, заметки, дни, цикл, доходы/расходы, цвета дней ----
+let allT=0,allLast=0,allPend=false;
+async function allPush(){try{if(!link||!navigator.onLine)return;
+  const body={notes,memos,days:dayCats,cyc,money:mlog,dcol:dayCol},sig=JSON.stringify(body);if(sig===allPush.sig)return;
+  const wait=60000-(Date.now()-allLast);if(wait>0){clearTimeout(allT);allT=setTimeout(allPush,wait+500);return} // не чаще раза в минуту
+  const L=load('cal.linkAll',{})||{},ni=notes.map(n=>n.id),mi=memos.map(m=>m.id),xi=mlog.map(x=>x.id),
+    dif=(a,b)=>{const B=new Set(b);return Array.isArray(a)?a.filter(i=>typeof i==='string'&&!B.has(i)).slice(0,500):[]};
+  const p={v:2,dev:devId,t:Date.now(),...body,del:dif(L.n,ni),mdel:dif(L.m,mi),xdel:dif(L.x,xi)};
+  allLast=Date.now();await relayPut(link.topic,await enc(await zipStr(JSON.stringify(p)),unb64u(link.key)),'all');
+  allPush.sig=sig;save('cal.linkAll',{n:ni,m:mi,x:xi})}catch(e){}}
+function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.filter(x=>typeof x==='string'):[]);let ch=false,ex=false;
+  if(Array.isArray(p.notes)){const del=ids(p.del),b=notes.length;notes=notes.filter(n=>!del.has(n.id));if(notes.length!==b)ch=true;
+    const ix=new Map(notes.map((n,i)=>[n.id,i]));for(const n of cleanList(p.notes,cleanNote)){if(ix.has(n.id)){const i=ix.get(n.id);if(S(notes[i])!==S(n)){notes[i]=n;ch=true}}else{ix.set(n.id,notes.length);notes.push(n);ch=true}}}
+  if(Array.isArray(p.memos)){const del=ids(p.mdel),b=memos.length;memos=memos.filter(m=>!del.has(m.id));if(memos.length!==b)ch=true;
+    const ix=new Map(memos.map((m,i)=>[m.id,i]));for(const m of cleanList(p.memos,cleanMemo)){if(ix.has(m.id)){const i=ix.get(m.id);if((m.upd||0)>(memos[i].upd||0)){memos[i]=m;ch=true}}else{ix.set(m.id,memos.length);memos.push(m);ch=true}}}
+  if(p.days&&typeof p.days==='object'&&!Array.isArray(p.days))for(const k of Object.keys(p.days))if(RX.date.test(k)&&DAYCATS[p.days[k]]&&dayCats[k]!==p.days[k]){dayCats[k]=p.days[k];ch=true}
+  // цикл, деньги, цвета — через проверку при перезапуске
+  const x={};if(p.cyc&&S(p.cyc)!==S(cyc))x.cyc=p.cyc;if(p.dcol&&Object.keys(p.dcol).some(k=>p.dcol[k]!==dayCol[k]))x.dcol=p.dcol;
+  {const have=new Set(mlog.map(m=>m.id)),del=ids(p.xdel);if(Array.isArray(p.money)&&p.money.some(m=>m&&!have.has(m.id)))x.money=p.money;
+    if(del.size&&mlog.some(m=>del.has(m.id))){save('cal.money',mlog.filter(m=>!del.has(m.id)));ex=true}}
+  if(Object.keys(x).length&&mergeExtra(x))ex=true;
+  if(ch){save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
+  if(ex){const busy=/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend){allPend=false;location.reload()}});
+setInterval(allPush,20000);
 setInterval(linkPull,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)linkPull()});
 addEventListener('load',()=>{linkUi();linkBridge();setTimeout(()=>{linkPull();linkPush()},1500)});
@@ -3953,6 +3994,7 @@ function applySync(raw){
   if(raw.days&&typeof raw.days==='object')for(const k in raw.days)if(RX.date.test(k)&&DAYCATS[raw.days[k]])dayCats[k]=raw.days[k];
   save('cal.notes',notes);saveMemos();saveDays();
   if(raw.set&&typeof raw.set==='object'&&!Array.isArray(raw.set)){const ns=Object.assign({},settings);for(const k of Object.keys(raw.set))if(/^[a-zA-Z]\w{0,30}$/.test(k)&&k!=='__proto__'&&k!=='constructor'&&k!=='prototype')ns[k]=raw.set[k];save('cal.settings',ns)} // проверка полей — при перезапуске
+  mergeExtra(raw);
   try{sessionStorage.setItem('cal.synced','1')}catch(e){}
   location.reload()}
 async function syncIn(h,quiet){
@@ -3975,7 +4017,7 @@ async function syncIn(h,quiet){
   if($('#scdlg').open)$('#scdlg').close();
   return syncShow(Array.from({length:st.n},(_,k)=>st.p[k+1]).join(''),quiet&&!isPhone)}
 async function syncShow(full,fromPhone){let raw;
-  if(typeof full!=='string'||full.length>8e6)return;
+  if(typeof full!=='string'||full.length>12e6)return;
   try{raw=JSON.parse(await zipStr(full,true));if(!raw||!Array.isArray(raw.notes))throw 0}
   catch(e){return yShow(T('Не удалось прочитать данные'),T('Сделайте на компьютере новый QR-код и отсканируйте ещё раз.'),[{t:T('Закрыть')}])}
   const nn=raw.notes.length,mm=Array.isArray(raw.memos)?raw.memos.length:0,dd=raw.days&&typeof raw.days==='object'?Object.keys(raw.days).length:0;

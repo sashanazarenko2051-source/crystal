@@ -2751,7 +2751,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')$('#prev').click();else if(e.key==='ArrowRight')$('#nextM').click();
 });
 let tx=null;
-$('#grid').addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+let ty=0;$('#grid').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
 // колесо мыши над календарём — листать месяцы (вниз — следующий, вверх — предыдущий)
 let wheelT=0,wheelAcc=0;
 ['#grid','#ygrid'].forEach(id=>$(id).addEventListener('wheel',e=>{
@@ -2760,7 +2760,7 @@ let wheelT=0,wheelAcc=0;
   (wheelAcc>0?$('#nextM'):$('#prev')).click();wheelAcc=0;wheelT=now;
   const g=$(id);g.classList.remove('wfx');void g.offsetWidth;g.classList.add('wfx');
 },{passive:false}));
-$('#grid').addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>60)(dx<0?$('#nextM'):$('#prev')).click();tx=null});
+$('#grid').addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*2)(dx<0?$('#nextM'):$('#prev')).click();tx=null});
 
 // ---- форма ----
 let editing=null,color=COLORS[0],ftype='rem',fcat='work';

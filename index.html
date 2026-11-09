@@ -4139,7 +4139,8 @@ $('#proPlans').onclick=e=>{const b=e.target.closest('[data-plan]');if(!b||b.disa
 window.gemdayPro=j=>{try{const o=typeof j==='string'?JSON.parse(j):j;if(o.prices&&typeof o.prices==='object')for(const k of ['month','year','life'])if(typeof o.prices[k]==='string')proPrices[k]=o.prices[k].slice(0,30);
   if(['month','year','life'].includes(o.plan)){pro.plan=o.plan;pro.until=o.plan==='life'?0:Math.max(0,+o.until||0);proSave();if($('#prodlg').open)$('#prodlg').close();toast(T('💎 Спасибо! Gemday Pro включён — открываю Gemday Pro…'));setTimeout(()=>location.reload(),1500)}
   if(o.plan==='none'&&pro.plan!=='trial'&&pro.plan!=='dev'){pro.plan='';pro.until=0;proSave()}}catch(e){}};
-setInterval(()=>{if(pro.plan==='trial'&&!isPro()){proPaint();if(document.title==='Gemday Pro'&&!PRO_DEV)location.reload()}},6e4);
+const proAtLoad=isPro(); // открыта как Pro — когда пробная неделя закончится, перезапуск в обычную версию
+setInterval(()=>{if(pro.plan==='trial'&&!isPro()){proPaint();if(proAtLoad&&!PRO_DEV)location.reload()}},6e4);
 
 // ======== «Для себя»: цикл и интим ========
 // cal.cyc = {per:[ymd…], day:{ymd:{i:0|1|2, m:'', s:[], t:''}}, len:28, plen:5, rem:true, fert:true}

@@ -1840,7 +1840,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.10',APP_DATE='09.11.2026';
+const APP_VER='3.11',APP_DATE='09.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -3508,7 +3508,11 @@ $('#impFile').onchange=async e=>{
   }catch(err){toast(T('Не удалось прочитать файл'))}
   e.target.value='';
 };
-$('#wipeBtn').onclick=()=>{if(notes.length&&confirm(T('Удалить ВСЕ записи? Это нельзя отменить.'))){notes=[];dayCats={};saveDays();persist();toast(T('Все записи удалены'))}};
+// удалить ВСЁ на этом устройстве: календарь, заметки, цикл, деньги, фото, связь устройств (остаются только настройки вида и покупка Pro)
+$('#wipeBtn').onclick=()=>{if(!confirm(T('Удалить ВСЕ записи на этом устройстве — календарь, заметки, цикл и здоровье, деньги, фото? Связь с другими устройствами отключится. Это нельзя отменить.')))return;
+  const keep=/^cal\.(settings|pro|mig.*|lite|dev|batx)$/;try{for(const k of Object.keys(localStorage))if(/^cal\./.test(k)&&!keep.test(k))localStorage.removeItem(k)}catch(e){}
+  try{window.CrystalAndroid&&CrystalAndroid.setLink&&CrystalAndroid.setLink('');window.CrystalAndroid&&CrystalAndroid.setAlarms&&CrystalAndroid.setAlarms('[]')}catch(e){}
+  toast(T('Все записи удалены'));setTimeout(()=>location.reload(),700)};
 
 // ---- смайлики: вставляются туда, где стоит курсор ----
 const EMO_QUICK='🎂 🎉 🎁 ❤️ 😊 😂 👍 🔥 ⭐ 💼 🏠 🚗'.split(' ');
@@ -4149,15 +4153,17 @@ function proPaint(){
   if($('#v-cyc').classList.contains('on'))cycRender();
 }
 function proShow(){
-  $('#proPlans').innerHTML=PLANS.map(p=>{const used=p.id==='trial'&&pro.trial;return `<button class="plan${p.best?' best':''}" data-plan="${p.id}"${used?' disabled style="opacity:.45"':''}><span><b>${T(p.n)}</b><small>${used?T('уже использован'):T(p.d)}</small></span><em>${p.id==='trial'?T('Бесплатно'):esc(proPrices[p.id]||'')}</em></button>`}).join('');
-  $('#proNote').textContent=isPro()&&(pro.plan==='month'||pro.plan==='year')?T('У вас подписка. Можно перейти на «Навсегда» — одна оплата, и больше никаких продлений.'):isPro()?T('Pro уже включён — спасибо!'):window.CrystalAndroid&&CrystalAndroid.buy?T('Оплата через Google Play. Подписку можно отменить в Google Play → Подписки.'):T('Купить подписку можно в приложении Gemday из Google Play. Пробная неделя работает везде.');
+  // в приложении из магазина без подключённой оплаты — только пробная неделя (нельзя показывать неработающие покупки и отсылать в другой магазин)
+  const inApp=!!window.CrystalAndroid,canBuy=inApp&&!!CrystalAndroid.buy;
+  $('#proPlans').innerHTML=PLANS.filter(p=>p.id==='trial'||canBuy||!inApp).map(p=>{const used=p.id==='trial'&&pro.trial;return `<button class="plan${p.best?' best':''}" data-plan="${p.id}"${used?' disabled style="opacity:.45"':''}><span><b>${T(p.n)}</b><small>${used?T('уже использован'):T(p.d)}</small></span><em>${p.id==='trial'?T('Бесплатно'):esc(proPrices[p.id]||'')}</em></button>`}).join('');
+  $('#proNote').textContent=isPro()&&(pro.plan==='month'||pro.plan==='year')?T('У вас подписка. Можно перейти на «Навсегда» — одна оплата, и больше никаких продлений.'):isPro()?T('Pro уже включён — спасибо!'):canBuy?T('Оплата через Google Play. Подписку можно отменить в Google Play → Подписки.'):inApp?T('Попробуйте все функции Pro бесплатно 7 дней.'):T('Купить подписку можно в приложении Gemday из Google Play. Пробная неделя работает везде.');
   $('#prodlg').showModal();
 }
 $('#proOpen').onclick=proShow;$('#proLife').onclick=()=>{proShow();const b=$('#proPlans [data-plan=life]');if(b){b.classList.add('best');b.scrollIntoView({block:'nearest'})}};$('#proClose').onclick=()=>$('#prodlg').close();
 $('#proPlans').onclick=e=>{const b=e.target.closest('[data-plan]');if(!b||b.disabled)return;const id=b.dataset.plan;
   if(id==='trial'){if(pro.trial)return;pro.trial=Date.now();if(!isPro()){pro.plan='trial';pro.until=Date.now()+7*864e5}proSave();$('#prodlg').close();toast(T('💎 Pro включён на 7 дней — открываю Gemday Pro…'));setTimeout(()=>location.reload(),1500);return}
   if(window.CrystalAndroid&&CrystalAndroid.buy){try{CrystalAndroid.buy(id)}catch(e){toast(T('Не удалось открыть оплату'))}}
-  else toast(T('Покупка — в приложении Gemday из Google Play'))};
+  else if(!window.CrystalAndroid)toast(T('Покупка — в приложении Gemday из Google Play'))};
 // ответ Google Play (Android вызывает window.gemdayPro): {plan, until} или {prices:{month:'…',year:'…',life:'…'}}
 window.gemdayPro=j=>{try{const o=typeof j==='string'?JSON.parse(j):j;if(o.prices&&typeof o.prices==='object')for(const k of ['month','year','life'])if(typeof o.prices[k]==='string')proPrices[k]=o.prices[k].slice(0,30);
   if(['month','year','life'].includes(o.plan)){pro.plan=o.plan;pro.until=o.plan==='life'?0:Math.max(0,+o.until||0);proSave();if($('#prodlg').open)$('#prodlg').close();toast(T('💎 Спасибо! Gemday Pro включён — открываю Gemday Pro…'));setTimeout(()=>location.reload(),1500)}
@@ -4504,7 +4510,7 @@ async function ocrUrlBar(c){
   P.width=Math.round(c.width*k);P.height=Math.round(h*k);const g=P.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(c,0,0,c.width,h,0,0,P.width,P.height);
   const o=await ocrRead(P);return findUrl(o.text)}
 async function ocrRead(c,big){
-  if(!window.Tesseract)await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://cdn.jsdelivr.net/npm/tesseract.js@${OCRV}/dist/tesseract.min.js`;sc.onload=ok;sc.onerror=no;document.head.append(sc)});
+  if(!window.Tesseract)await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://cdn.jsdelivr.net/npm/tesseract.js@${OCRV}/dist/tesseract.min.js`;sc.integrity='sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F';sc.crossOrigin='anonymous';sc.onload=ok;sc.onerror=no;document.head.append(sc)});
   if(!ocrW){const l=OCRL[LANG]||'eng';ocrW=await Tesseract.createWorker(l==='eng'?'eng':l+'+eng',1,{workerPath:`https://cdn.jsdelivr.net/npm/tesseract.js@${OCRV}/dist/worker.min.js`,corePath:`https://cdn.jsdelivr.net/npm/tesseract.js-core@${OCRV}`,langPath:'https://tessdata.projectnaptha.com/4.0.0_fast'})}
   // подготовка: крупнее (мелкий текст сайтов), серый, светлый текст на тёмном фоне → тёмный на светлом
   const k=big==='small'?Math.min(1,Math.max(.35,900/c.width)):big?Math.min(3.2,4200/c.width):Math.max(1,Math.min(2,2200/c.width)),P=document.createElement('canvas');P.width=Math.round(c.width*k);P.height=Math.round(c.height*k);

@@ -1900,6 +1900,9 @@ function cleanMemo(m){
 const cleanList=(a,f)=>Array.isArray(a)?a.map(f).filter(Boolean):[];
 const num=(v,lo,hi,d)=>Number.isFinite(+v)&&v!==null&&v!==''?Math.min(hi,Math.max(lo,+v)):d;
 let notes=cleanList(load('cal.notes',[]),cleanNote);
+// одинаковые записи с разными id (после синхронизации двух устройств) — оставляем одну
+function dedupeNotes(){const seen=new Set(),out=[];let rm=0;for(const n of notes){const k=JSON.stringify(Object.assign({},n,{id:0,fired:0,doneDays:0,done:0,pk:0}));if(seen.has(k)){rm++;continue}seen.add(k);out.push(n)}if(rm)notes=out;return rm}
+if(dedupeNotes())save('cal.notes',notes);
 // фото к записям (кадр фильма и т.п.): только JPEG data-URL, маленькие
 let IMGS=(()=>{const x=load('cal.imgs',{})||{},o={},ids=new Set(notes.map(n=>n.id));for(const k in x)if(ids.has(k)&&typeof x[k]==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]{20,120000}$/.test(x[k]))o[k]=x[k];return o})();
 const saveImgs=()=>save('cal.imgs',IMGS);
@@ -3183,6 +3186,8 @@ function download(name,text,type){
 
 // ---- заметки: пишутся сразу на странице, правятся прямо в карточке ----
 let memos=cleanList(load('cal.memos',[]),cleanMemo);
+function dedupeMemos(){const seen=new Set(),out=[];let rm=0;for(const m of memos){const k=JSON.stringify([m.title||'',m.text||'',(m.items||[]).map(i=>i.t)]);if(k==='["","",[]]'){out.push(m);continue}if(seen.has(k)){rm++;continue}seen.add(k);out.push(m)}if(rm)memos=out;return rm}
+if(dedupeMemos())save('cal.memos',memos);
 const saveMemos=()=>save('cal.memos',memos);
 const fmtUpd=t=>{const d=new Date(t);return ymd(d)===ymd(new Date())?T('сегодня, ')+hm(d):`${d.getDate()} ${MONTHS_G[d.getMonth()]} ${d.getFullYear()}`};
 function memoHtml(m){
@@ -3950,6 +3955,7 @@ function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.fi
   {const have=new Set(mlog.map(m=>m.id)),del=ids(p.xdel);if(Array.isArray(p.money)&&p.money.some(m=>m&&!have.has(m.id)))x.money=p.money;
     if(del.size&&mlog.some(m=>del.has(m.id))){save('cal.money',mlog.filter(m=>!del.has(m.id)));ex=true}}
   if(Object.keys(x).length&&mergeExtra(x))ex=true;
+  if(dedupeNotes()|dedupeMemos())ch=true;
   if(ch){save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
   if(ex){const busy=/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend){allPend=false;location.reload()}});
@@ -3998,7 +4004,7 @@ function yShow(t,p,btns){
   if(!$('#ydlg').open)$('#ydlg').showModal()}
 function applySync(raw){
   const up=(list,arr,clean)=>{const ix=new Map(list.map((x,i)=>[x.id,i]));cleanList(arr,clean).forEach(x=>{if(ix.has(x.id))list[ix.get(x.id)]=x;else{ix.set(x.id,list.length);list.push(x)}})};
-  up(notes,raw.notes,cleanNote);up(memos,raw.memos,cleanMemo);
+  up(notes,raw.notes,cleanNote);up(memos,raw.memos,cleanMemo);dedupeNotes();dedupeMemos();
   if(raw.days&&typeof raw.days==='object')for(const k in raw.days)if(RX.date.test(k)&&DAYCATS[raw.days[k]])dayCats[k]=raw.days[k];
   save('cal.notes',notes);saveMemos();saveDays();
   if(raw.set&&typeof raw.set==='object'&&!Array.isArray(raw.set)){const ns=Object.assign({},settings);for(const k of Object.keys(raw.set))if(/^[a-zA-Z]\w{0,30}$/.test(k)&&k!=='__proto__'&&k!=='constructor'&&k!=='prototype')ns[k]=raw.set[k];save('cal.settings',ns)} // проверка полей — при перезапуске

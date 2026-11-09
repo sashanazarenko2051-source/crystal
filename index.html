@@ -489,7 +489,7 @@ td.c{color:var(--mut)}
 .tog::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .tog:checked{background:var(--acc)}.tog:checked::after{left:22px}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-@media(max-width:700px){.themes{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.themes button{border-radius:10px}.themes button div{height:40px!important}.themes button div i{height:5px;left:6px;right:6px}.themes button div i:nth-child(1){top:8px!important}.themes button div i:nth-child(2){top:17px!important}.themes button div i:nth-child(3){top:26px!important}.themes button span{font-size:10.5px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sw{flex-wrap:wrap;gap:8px}.sw>span:first-child{flex:1 1 150px;min-width:0}.sw select{max-width:100%;min-width:0}.snd{flex-wrap:wrap;max-width:100%}.wdsel{flex-wrap:wrap}.sw .wdsel{margin-top:4px}.app{padding-bottom:calc(160px + env(safe-area-inset-bottom))!important}.cstat{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}.cstat div{padding:8px!important;border-radius:12px!important}.cstat b{font-size:16px!important}.cstat span{font-size:10.5px!important;line-height:1.25}#dsdlg .cats{grid-template-columns:repeat(3,minmax(0,1fr))}#dsdlg .mde{max-height:calc(100dvh - 24px);overflow:auto}.mfoot{flex-wrap:wrap;row-gap:6px}.mfoot .pill{flex:1 1 auto}.mrem{flex-wrap:wrap}}
+@media(max-width:700px){.themes{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.themes button{border-radius:10px}.themes button div{height:40px!important}.themes button div i{height:5px;left:6px;right:6px}.themes button div i:nth-child(1){top:8px!important}.themes button div i:nth-child(2){top:17px!important}.themes button div i:nth-child(3){top:26px!important}.themes button span{font-size:10.5px;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sw{flex-wrap:wrap;gap:8px}.sw>span:first-child{flex:1 1 150px;min-width:0}.sw select{max-width:100%;min-width:0}.snd{flex-wrap:wrap;max-width:100%}.wdsel{flex-wrap:wrap}.sw .wdsel{margin-top:4px}.app{padding-bottom:calc(160px + env(safe-area-inset-bottom))!important}.cstat{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}.cstat div{padding:8px!important;border-radius:12px!important}.cstat b{font-size:16px!important}.cstat span{font-size:10.5px!important;line-height:1.25}#dsdlg .cats{grid-template-columns:repeat(3,minmax(0,1fr))}#dsdlg .mde{max-height:calc(100dvh - 24px);overflow:auto}.mfoot{flex-wrap:wrap;row-gap:6px}.mfoot .pill{flex:1 1 auto}.mrem{flex-wrap:wrap}.mnew{flex-wrap:wrap!important}.mnew textarea{flex:1 1 100%!important;width:100%;min-width:0}.mnew .mnb{flex:1 1 0!important;min-width:0!important}}
 
 .themes button{border:2px solid var(--line);border-radius:14px;padding:0;overflow:hidden;background:none;text-align:left;transition:.15s}
 .themes button.on{border-color:var(--acc);box-shadow:var(--glow)}
@@ -4756,11 +4756,24 @@ $('#botChat').addEventListener('dragover',e=>e.preventDefault());$('#botChat').a
 document.addEventListener('paste',e=>{if(!$('#v-bot').classList.contains('on')||!isPro())return;const fs=[...(e.clipboardData?.files||[])].filter(x=>/^image\//.test(x.type));if(fs.length){e.preventDefault();trayAdd(fs)}});
 // голос (Edge/Chrome на ПК; в приложении Android — клавиатура с микрофоном)
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
-if(!SR)$('#botMic').hidden=true;
-$('#botMic').onclick=()=>{if(rec){rec.stop();return}rec=new SR();rec.lang=LOC;rec.interimResults=true;rec.continuous=false;$('#botMic').classList.add('rec');
+// голос: Android — системный ввод Google (CrystalAndroid.listen), ПК — распознавание браузера, запасной путь — Win+H
+const vAndroid=!!(window.CrystalAndroid&&CrystalAndroid.listen);
+window.gemdayVoice=t=>{$('#botMic').classList.remove('rec');
+  if(t===null)return toast(T('🎙 На телефоне нет голосового ввода Google — установите «Google» или «Gboard» из Google Play'));
+  t=String(t||'').trim().slice(0,2000);if(!t)return;showView('bot');$('#botText').value=t;botSend(t)};
+const winDictate=()=>{const ta=$('#botText');ta.focus();toast(T('🎙 Нажмите Win + H — включится голосовой ввод Windows, говорите, затем Enter'))};
+$('#botMic').hidden=false;
+$('#botMic').onclick=()=>{
+  if(vAndroid){$('#botMic').classList.add('rec');try{CrystalAndroid.listen(LOC)}catch(e){gemdayVoice(null)}return}
+  if(!SR)return winDictate();
+  if(rec){rec.stop();return}rec=new SR();rec.lang=LOC;rec.interimResults=true;rec.continuous=false;$('#botMic').classList.add('rec');let err='';
   rec.onresult=e=>{$('#botText').value=[...e.results].map(r=>r[0].transcript).join(' ')};
-  rec.onend=()=>{$('#botMic').classList.remove('rec');rec=null;if($('#botText').value.trim())botSend($('#botText').value)};
-  rec.onerror=()=>{toast(T('🎙 Микрофон недоступен'))};try{rec.start()}catch(e){rec=null;$('#botMic').classList.remove('rec')}};
+  rec.onend=()=>{$('#botMic').classList.remove('rec');rec=null;if(err)return;if($('#botText').value.trim())botSend($('#botText').value)};
+  rec.onerror=e=>{err=e.error||'x';
+    if(err==='no-speech')toast(T('🎙 Ничего не услышал — нажмите 🎙 и говорите'));
+    else if(err==='not-allowed'||err==='service-not-allowed'||err==='network'||err==='audio-capture')winDictate();
+    else if(err!=='aborted')toast(T('🎙 Микрофон недоступен'))};
+  try{rec.start();toast(T('🎙 Слушаю… говорите'))}catch(e){rec=null;$('#botMic').classList.remove('rec');winDictate()}};
 function botSavedPaint(){const L=notes.filter(n=>n.bot===1).sort((a,b)=>a.date.localeCompare(b.date)),el=$('#botSaved');if(!el)return;el.hidden=!L.length||!isPro();
   el.querySelector('summary').textContent=T`📌 Сохранено ботом: ${L.length}`;
   $('#botSavedL').innerHTML=L.map(n=>`<div class="bsi">${IMGS[n.id]?`<img src="${IMGS[n.id]}" alt="">`:'<i>🎬</i>'}<span><b>${esc(n.name)}</b><small>${dayLabel(n.date)}${n.time?', '+n.time:''}</small></span><button type="button" class="pill" data-bgo="${n.id}">📅</button><button type="button" class="pill bdel" data-bdel="${n.id}" title="${T('Удалить')}">🗑</button></div>`).join('')}

@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>if(location.protocol.startsWith('http')){const l=document.createElement('link');l.rel='manifest';l.href='manifest.json';document.head.append(l)}</script>
 <script>/* значок окна: Pro — сразу свой (Edge берёт для панели задач первый объявленный значок) */{let pr=false;try{const p=JSON.parse(localStorage.getItem('cal.pro'))||{};pr=/[?&]pro=dev\b/.test(location.search)||!!(p.plan&&p.plan!=='dev'&&(p.until===0&&p.plan!=='trial'||Date.now()<p.until))}catch(e){}
-const ic=pr?'icon-pro.png':'icon-192.png';document.write('<link rel="icon" sizes="192x192" href="'+ic+'"><link rel="apple-touch-icon" href="'+ic+'">');if(pr)document.title='Gemday Pro'}</script>
+const ic=pr?'icon-pro.png':'icon-192.png',ico=pr?'crystal-pro.ico':'crystal.ico';document.write('<link rel="icon" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256" href="'+ico+'"><link rel="icon" sizes="192x192" href="'+ic+'"><link rel="apple-touch-icon" href="'+ic+'">');if(pr)document.title='Gemday Pro'}</script>
 <noscript><link rel="icon" href="icon-192.png"></noscript>
 <script>try{const st=JSON.parse(localStorage.getItem('cal.settings'))||{};document.documentElement.dataset.theme=st.v===2&&st.theme||'hud'}catch(e){}</script>
 <style>
@@ -1168,6 +1168,8 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a,.pvc .ac button{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:4px;padding:7px 6px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--txt);font-size:12px;font-weight:600;text-decoration:none;cursor:pointer}
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
+.themes button div .tpv{position:absolute;left:10px;top:28px;width:34px;height:26px;display:grid;place-items:center;font:700 13px/1 inherit;color:#fff;border:1.5px solid;box-sizing:border-box}
+@media(max-width:700px){.themes button div .tpv{top:15px!important;left:6px;width:26px;height:20px;font-size:10px}.themes button div i:not(:first-child){left:38px!important}}
 @media(max-width:760px){.pv{padding:14px 12px}.pvg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pvc{border-radius:14px}.pvc .ph{font-size:40px}.pvc .cdb{left:6px;right:6px;bottom:6px;padding:4px 6px;border-radius:9px;font-size:11px}.pvc .bd{padding:8px 9px 10px;gap:4px}.pvc .bd b{font-size:13px}.pvc .bd small{font-size:11px}.pvc .ac{gap:4px}.pvc .ac a,.pvc .ac button{padding:6px 4px;font-size:11.5px}.pvc .ac .unp{flex:1 1 0;min-width:0}
   .pvc .ac>a{flex:1 1 100%}
   .pv .pvi{display:grid;grid-template-columns:58px minmax(0,1fr) repeat(3,auto);align-items:center;column-gap:6px;row-gap:2px;padding:10px 12px}.pv .pvi .n{grid-row:1/3;min-width:0}.pv .pvi .tx{grid-column:2/6}.pv .pvi .tx b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.pv .pvi .unp{grid-row:2}.pv .pvi .unp[data-mv]{grid-column:3}.pv .pvi .unp[data-unpin]{grid-column:4}.pv .pvi .unp[data-pdel]{grid-column:5}
@@ -1848,7 +1850,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.12',APP_DATE='09.11.2026';
+const APP_VER='3.13',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -2145,7 +2147,20 @@ function applyTheme(id){
   $$('#themes button').forEach(b=>b.classList.toggle('on',b.dataset.th===id));
   setTimeout(()=>{try{fx.reset()}catch(e){}},50);
 }
-$('#themes').innerHTML=THEMES.map(t=>`<button data-th="${t.id}"><div style="background:${t.bg}"><i style="top:14px;background:linear-gradient(90deg,${t.a},${t.b})"></i><i style="top:30px;right:50%;background:${t.a}"></i><i style="top:46px;right:30%;background:${t.b};opacity:.6"></i></div><span>${t.name}</span></button>`).join('');
+// ---- характер стиля: у каждого свои углы, шрифт, узор фона, оттенок карточек и рамки — чтобы стили заметно отличались ----
+// [форма s/m/r/p, шрифт, узор, рамка thin/bold/glow, оттенок карточек %]
+const TPERS={neon:'r,sans,grid,glow,8',cyber:'s,tech,lines,glow,6',matrix:'s,mono,lines,bold,6',sunset:'p,soft,diag,thin,10',ocean:'r,sans,waves,thin,10',space:'m,tech,dots,glow,6',winter:'r,soft,dots,thin,8',aurora:'p,sans,diag,glow,8',sakura:'p,serif,dots,thin,12',mint:'r,soft,grid,thin,10',lava:'s,tech,diag,glow,10',coffee:'m,serif,lines,bold,12',forest:'m,serif,waves,thin,10',gold:'s,serif,diag,bold,8',cherry:'p,soft,dots,bold,12',
+  ruby:'s,serif,checks,glow,12',emerald:'m,serif,grid,bold,10',sapphire:'s,tech,grid,glow,10',amethyst:'p,serif,dots,glow,12',peach:'p,soft,waves,thin,14',arctic:'r,tech,lines,thin,8',desert:'m,serif,diag,bold,12',midnight:'s,tech,dots,glow,8',rose:'p,serif,waves,bold,12',lime:'s,mono,checks,bold,10',teal:'r,soft,waves,glow,10',violet:'p,tech,grid,glow,12',copper:'m,serif,lines,bold,14',steel:'s,mono,grid,bold,6',candy:'p,soft,checks,glow,14',sunrise:'r,soft,diag,thin,12',deepsea:'r,sans,waves,glow,8',lavender:'p,serif,dots,thin,12',retro:'s,mono,lines,bold,14',mono:'s,mono,none,bold,0'};
+const TSHAPE={s:[4,3],m:[12,9],r:[20,14],p:[28,20]},TFONT={sans:'',serif:'Georgia,"Iowan Old Style","Noto Serif","Times New Roman",serif',mono:'"Cascadia Code",Consolas,ui-monospace,monospace',tech:'Bahnschrift,"DIN Alternate","Roboto Condensed","Arial Narrow",sans-serif',soft:'"Trebuchet MS","Segoe UI",Verdana,sans-serif'};
+const tMix=(c,p)=>`color-mix(in srgb,${c} ${p}%,transparent)`;
+const tPat=(k,a)=>({dots:`radial-gradient(${tMix(a,22)} 1.2px,transparent 1.8px) 0 0/22px 22px`,grid:`linear-gradient(${tMix(a,12)} 1px,transparent 1px) 0 0/30px 30px,linear-gradient(90deg,${tMix(a,12)} 1px,transparent 1px) 0 0/30px 30px`,lines:`repeating-linear-gradient(0deg,${tMix(a,9)} 0 1px,transparent 1px 7px)`,diag:`repeating-linear-gradient(135deg,${tMix(a,10)} 0 2px,transparent 2px 20px)`,waves:`radial-gradient(circle at 50% 100%,transparent 40%,${tMix(a,14)} 42% 46%,transparent 48%) 0 0/56px 28px`,checks:`conic-gradient(${tMix(a,8)} 25%,transparent 0 50%,${tMix(a,8)} 0 75%,transparent 0) 0 0/40px 40px`}[k]||'');
+function tPers(t){const p=(TPERS[t.id]||'').split(',');if(p.length<5)return null;const[sh,fo,pa,bo,ti]=p;return{r:TSHAPE[sh]||TSHAPE.m,font:TFONT[fo]||'',pat:tPat(pa,t.a),bo,ti:+ti||0}}
+{const css=THEMES.map(t=>{const p=tPers(t);if(!p)return'';const S=`[data-theme=${t.id}]`,glow=p.bo==='glow';
+  return `${S}{--r:${p.r[0]}px;--rs:${p.r[1]}px;--panel:color-mix(in srgb,${t.a} ${p.ti}%,rgba(255,255,255,.035));--line:${tMix(t.a,p.bo==='bold'?48:glow?30:16)};--bgimg:${p.pat?p.pat+',':''}radial-gradient(1100px 700px at 100% 0%,${tMix(t.a,22)},transparent 60%),radial-gradient(900px 600px at 0% 100%,${tMix(t.b,14)},transparent 60%)${p.font?`;--font:${p.font}`:''}}`
+   +(glow?`${S} .glass{box-shadow:0 0 0 1px ${tMix(t.a,20)},0 0 26px ${tMix(t.a,22)}}`:'')+(p.bo==='bold'?`${S} .glass{border-width:1.5px}`:'')}).join('\n');
+  const st=document.createElement('style');st.id='thx';st.textContent=css;document.head.append(st)}
+$('#themes').innerHTML=THEMES.map(t=>{const p=tPers(t),r=p?p.r:[t.id==='hud'?4:12,8],f=p&&p.font?`font-family:${p.font.replace(/"/g,"'")};`:'';
+  return `<button data-th="${t.id}"><div style="background:${p&&p.pat?p.pat+',':''}${t.bg}"><i style="top:12px;background:linear-gradient(90deg,${t.a},${t.b});border-radius:${r[1]}px"></i><b class="tpv" style="border-radius:${r[0]}px;border-color:${t.a};${/^#[ef]/i.test(t.bg)?'color:#111;':''}${f}${p&&p.bo==='glow'?`box-shadow:0 0 12px ${tMix(t.a,55)};`:''}background:${p?`color-mix(in srgb,${t.a} ${p.ti+6}%,${t.bg})`:t.bg}">Aa</b><i style="top:30px;left:52px;right:30%;background:${t.a};border-radius:${r[1]}px"></i><i style="top:46px;left:52px;right:44%;background:${t.b};opacity:.6;border-radius:${r[1]}px"></i></div><span style="${f}">${t.name}</span></button>`}).join('');
 $('#themes').onclick=e=>{const b=e.target.closest('[data-th]');if(b)applyTheme(b.dataset.th)};
 $('#themeBtn').onclick=()=>{const i=THEMES.findIndex(t=>t.id===(settings.theme||'hud'));const t=THEMES[(i+1)%THEMES.length];applyTheme(t.id);toast(T('Стиль: ')+t.name)};
 applyTheme(settings.theme||'hud');
@@ -3862,8 +3877,10 @@ const rnd=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>'abcdefghij
 const aesKey=raw=>crypto.subtle.importKey('raw',raw,'AES-GCM',false,['encrypt','decrypt']);
 async function enc(text,raw){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(raw),new TextEncoder().encode(text))),o=new Uint8Array(12+ct.length);o.set(iv);o.set(ct,12);return o}
 async function dec(buf,raw){const b=new Uint8Array(buf);return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},await aesKey(raw),b.slice(12)))}
-async function relayPut(topic,bytes,tag){
-  const r=await fetch(`${RELAY}${topic}?filename=c.bin&tags=${tag}`,{method:'PUT',body:bytes});if(!r.ok)throw new Error('put '+r.status);
+// сервис связи бесплатный и иногда отвечает «слишком много запросов» (браузер видит это как сбой сети) — пробуем ещё 2 раза с паузой
+async function relayPut(topic,bytes,tag){let r,err;
+  for(let a=0;a<3;a++){if(a)await new Promise(ok=>setTimeout(ok,a*6000));try{r=await fetch(`${RELAY}${topic}?filename=c.bin&tags=${tag}`,{method:'PUT',body:bytes});if(r.ok)break;err=new Error('put '+r.status)}catch(e){err=e;r=null}}
+  if(!r||!r.ok)throw err||new Error('put');
   const j=await r.json(),m=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(j.attachment&&j.attachment.url||'');if(!m)throw new Error('noattach');return m[1]}
 async function relayGet(id,raw){
   const r=await fetch(`${RELAY}file/${id}.bin`);if(r.status===404)throw new Error('expired');if(!r.ok)throw new Error('get '+r.status);
@@ -3888,7 +3905,7 @@ async function p2pHost(){
       const pid=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(m.attachment&&m.attachment.url||'');if(!pid)return;
       qStatus(T('⏳ Получаю записи с телефона…'));const d=await relayGet(pid[1],raw);if(my!==relayOn)return;$('#qdlg').close();syncShow(d,true)}
       catch(e){qStatus(T('⚠ Не удалось получить записи с телефона'))}};
-  }catch(e){if(my!==relayOn)return;qStatus(T('⚠ Нет связи с интернетом — нажмите «Показать коды без интернета»'))}}
+  }catch(e){if(my!==relayOn)return;qStatus(navigator.onLine?T('⚠ Сервер связи сейчас занят — попробуйте через минуту или нажмите «Показать коды без интернета»'):T('⚠ Нет связи с интернетом — нажмите «Показать коды без интернета»'))}}
 function qDrawCode(){const q=qrcode(0,'M');q.addData(qParts[0],'Byte');q.make();
   const n=q.getModuleCount(),m=4,px=Math.max(4,Math.floor(900/(n+m*2))),cv=$('#qCv'),c=cv.getContext('2d');
   cv.width=cv.height=(n+m*2)*px;c.fillStyle='#fff';c.fillRect(0,0,cv.width,cv.height);c.fillStyle='#000';
@@ -3910,10 +3927,11 @@ async function p2pJoin(v){
     {t:T('📥 Получить записи с ПК'),cta:1,on:()=>syncShow(d,false)},
     {t:T('📤 Отправить мои записи на ПК'),on:async()=>{yShow(T('⏳ Отправляю…'),'',[]);
       try{await relayPut(topic,await enc(await packAll(),raw),'phone');yShow(T('✓ Отправлено на компьютер'),T('Подтвердите загрузку на компьютере — там должно быть открыто окно с QR-кодом.'),[{t:T('Готово'),cta:1}])}
-      catch(e){yShow(T('Не получилось отправить'),T('Проверьте интернет и попробуйте ещё раз.'),[{t:T('Закрыть')}])}}},
+      catch(e){yShow(T('Не получилось отправить'),navigator.onLine?T('Сервер связи сейчас занят или нет интернета — попробуйте через минуту.'):T('Проверьте интернет и попробуйте ещё раз.'),[{t:T('Закрыть')}])}}},
     {t:T('Отмена')}])}
 function qDraw(){
-  const q=qrcode(0,'L');q.addData(qParts[qI],'Byte');q.make();
+  // библиотека рисует нечитаемый код версии 23 при уровне L (109 модулей) — тогда берём уровень M (проверено: M читается во всех версиях)
+  let q=qrcode(0,'L');q.addData(qParts[qI],'Byte');q.make();if(q.getModuleCount()===109){q=qrcode(0,'M');q.addData(qParts[qI],'Byte');q.make()}
   const n=q.getModuleCount(),m=4,px=Math.max(3,Math.floor(900/(n+m*2))),cv=$('#qCv'),c=cv.getContext('2d');
   cv.width=cv.height=(n+m*2)*px;c.fillStyle='#fff';c.fillRect(0,0,cv.width,cv.height);c.fillStyle='#000';
   for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))c.fillRect((k+m)*px,(r+m)*px,px,px);
@@ -3999,14 +4017,14 @@ function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.fi
   if(ex){const busy=/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend){allPend=false;location.reload()}});
 setInterval(()=>allPush(),20000);
-$('#linkNow').onclick=async()=>{if(!link)return;toast(T('🔄 Синхронизирую…'));allReq();await allPush(true);await linkPull();setTimeout(linkPull,9000);setTimeout(()=>{linkPull();linkUi()},20000)};
+$('#linkNow').onclick=()=>syncNowAll();
 addEventListener('load',()=>setTimeout(()=>{if(link)allReq()},4000)); // при запуске — попросить свежее у другого устройства
 setInterval(linkPull,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)linkPull()});
 addEventListener('load',()=>{linkUi();linkBridge();setTimeout(()=>{linkPull();linkPush()},1500)});
 $('#linkOff').onclick=()=>{link=null;try{localStorage.removeItem('cal.link');localStorage.removeItem('cal.linkIds')}catch(e){}linkBridge();linkUi();toast(T('Устройства отвязаны'))};
 // ---- телефон: «Подключиться к ПК» ----
-$('#pcBtn').onclick=()=>$('#cdlg').showModal();
+$('#pcBtn').onclick=()=>link?syncMenu():$('#cdlg').showModal();
 $('#cX').onclick=()=>$('#cdlg').close();
 $('#cGet').onclick=()=>{$('#cdlg').close();scanOpen('environment')};
 $('#cFile').onclick=()=>{$('#cdlg').close();$('#expBtn').click()};
@@ -4035,20 +4053,33 @@ $('#scX').onclick=()=>$('#scdlg').close();
 $('#qPrev').onclick=()=>{qI=(qI-1+qParts.length)%qParts.length;qDraw()};
 $('#qNext').onclick=()=>{qI=(qI+1)%qParts.length;qDraw()};
 $('#qX').onclick=()=>$('#qdlg').close();
-$('#devBtn').onclick=()=>$('#qrBtn').onclick();
+// «Синхронизация устройств»: если устройства уже связаны — состояние и действия, иначе QR-код для подключения
+function syncAgo(){const st=load('cal.syncAt',{})||{},f=t=>t?new Date(t).toLocaleString(LOC,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):T('ещё не было');return T`Отправлено: ${f(st.out)} · получено: ${f(st.in)}`}
+async function syncNowAll(){if(!link)return;if(!navigator.onLine)return toast(T('⚠ Нет интернета — синхронизация начнётся сама, когда он появится'));toast(T('🔄 Синхронизирую…'));allReq();allLast=0;await allPush(true);await linkPull();setTimeout(linkPull,9000);setTimeout(()=>{linkPull();linkUi()},20000)}
+// забрать ВСЕ записи с другого устройства (телефона): просим его прислать всё и ждём до 2 минут
+function pullAll(){if(!link)return;if(!navigator.onLine)return toast(T('⚠ Нет интернета'));const st0=(load('cal.syncAt',{})||{}).in||0;allReq();
+  yShow(T('📥 Жду записи с другого устройства…'),T('Откройте Gemday на телефоне (он должен быть подключён к интернету) — он сам пришлёт все записи: календарь, заметки, цикл, доходы и расходы. Здесь ничего не удалится, всё объединится.'),[{t:T('Закрыть')}]);
+  let n=0;const t=setInterval(async()=>{n++;await linkPull();const st=(load('cal.syncAt',{})||{}).in||0;if(st>st0){clearInterval(t);if($('#ydlg').open&&/Жду/.test($('#yT').textContent))$('#ydlg').close();toast(T('✓ Все записи с телефона получены'))}else if(n%6===0)allReq();if(n>=24){clearInterval(t);if($('#ydlg').open&&/Жду/.test($('#yT').textContent))yShow(T('Телефон не ответил'),T('Откройте Gemday на телефоне и проверьте интернет. Или на телефоне: «Подключиться к ПК» → «📤 Отправить все записи на ПК».'),[{t:T('🔄 Попробовать ещё раз'),cta:1,on:pullAll},{t:T('Закрыть')}])}},5000)}
+function syncMenu(){if(!link)return isPhone?$('#cdlg').showModal():p2pHost();
+  yShow(T('🔄 Синхронизация устройств'),T('Устройства связаны — записи, заметки, цикл, доходы и расходы переходят сами (нужен интернет). ')+syncAgo(),[
+    {t:T('🔄 Синхронизировать сейчас'),cta:1,on:syncNowAll},
+    isPhone?{t:T('📤 Отправить все записи на ПК'),on:async()=>{if(!navigator.onLine)return toast(T('⚠ Нет интернета'));toast(T('📤 Отправляю все записи…'));allLast=0;allPush.sig=null;await allPush(true);toast(T('✓ Отправлено — на компьютере появится в течение минуты'))}}:{t:T('📥 Забрать все записи с телефона'),on:pullAll},
+    {t:isPhone?T('📷 Подключиться заново (QR-код)'):T('📱 Подключить ещё устройство (QR-код)'),on:()=>isPhone?$('#cdlg').showModal():p2pHost()},
+    {t:T('Отвязать устройства'),on:()=>$('#linkOff').click()},{t:T('Закрыть')}])}
+$('#devBtn').onclick=syncMenu;
 if(isPhone){$('#qrBtn').hidden=$('#devBtn').hidden=true;$('#pcBtn').hidden=false}
 function yShow(t,p,btns){
   $('#yT').textContent=t;$('#yP').textContent=p;const B=$('#yB');B.innerHTML='';
   btns.forEach(o=>{const b=document.createElement(o.href?'a':'button');b.className=o.cta?'cta':'pill';b.textContent=o.t;if(o.href)b.href=o.href;b.onclick=()=>{$('#ydlg').close();if(o.on)o.on()};B.append(b)});
   if(!$('#ydlg').open)$('#ydlg').showModal()}
-function applySync(raw){
+function applySync(raw,fromPhone){
   const up=(list,arr,clean)=>{const ix=new Map(list.map((x,i)=>[x.id,i]));cleanList(arr,clean).forEach(x=>{if(ix.has(x.id))list[ix.get(x.id)]=x;else{ix.set(x.id,list.length);list.push(x)}})};
   up(notes,raw.notes,cleanNote);up(memos,raw.memos,cleanMemo);dedupeNotes();dedupeMemos();
   if(raw.days&&typeof raw.days==='object')for(const k in raw.days)if(RX.date.test(k)&&DAYCATS[raw.days[k]])dayCats[k]=raw.days[k];
   save('cal.notes',notes);saveMemos();saveDays();
   if(raw.set&&typeof raw.set==='object'&&!Array.isArray(raw.set)){const ns=Object.assign({},settings);for(const k of Object.keys(raw.set))if(/^[a-zA-Z]\w{0,30}$/.test(k)&&k!=='__proto__'&&k!=='constructor'&&k!=='prototype')ns[k]=raw.set[k];save('cal.settings',ns)} // проверка полей — при перезапуске
   mergeExtra(raw);
-  try{sessionStorage.setItem('cal.synced','1')}catch(e){}
+  try{sessionStorage.setItem('cal.synced',fromPhone?'phone':'1')}catch(e){}
   location.reload()}
 async function syncIn(h,quiet){
   if(typeof h!=='string'){h=location.hash;
@@ -4074,12 +4105,13 @@ async function syncShow(full,fromPhone){let raw;
   try{raw=JSON.parse(await zipStr(full,true));if(!raw||!Array.isArray(raw.notes))throw 0}
   catch(e){return yShow(T('Не удалось прочитать данные'),T('Сделайте на компьютере новый QR-код и отсканируйте ещё раз.'),[{t:T('Закрыть')}])}
   const nn=raw.notes.length,mm=Array.isArray(raw.memos)?raw.memos.length:0,dd=raw.days&&typeof raw.days==='object'?Object.keys(raw.days).length:0;
-  const btns=[{t:T('✓ Загрузить сюда'),cta:1,on:()=>applySync(raw)}];
+  const cy=raw.cyc&&raw.cyc.day&&typeof raw.cyc.day==='object'?Object.keys(raw.cyc.day).length+(Array.isArray(raw.cyc.per)?raw.cyc.per.length:0):0,my=Array.isArray(raw.money)?raw.money.length:0,im=raw.imgs&&typeof raw.imgs==='object'?Object.keys(raw.imgs).length:0;
+  const btns=[{t:T('✓ Загрузить сюда'),cta:1,on:()=>applySync(raw,fromPhone)}];
   if(!fromPhone&&/Android/i.test(navigator.userAgent)&&!window.CrystalAndroid)btns.push({t:T('📱 Открыть в приложении Gemday'),href:`intent://sync?d=${full}#Intent;scheme=crystal;package=app.crystal;end`});
   btns.push({t:T('Отмена')});
-  yShow(fromPhone?T('📥 Записи с телефона'):T('📥 Записи с компьютера'),T`В календаре: ${nn}, заметок: ${mm}, отмеченных дней: ${dd} — плюс праздники и настройки. Совпадающие записи обновятся, а то, что уже есть только здесь, останется.`,btns)}
+  yShow(fromPhone?T('📥 Записи с телефона'):T('📥 Записи с компьютера'),T`В календаре: ${nn}, заметок: ${mm}, отмеченных дней: ${dd}`+(cy?T`, отметок цикла: ${cy}`:'')+(my?T`, доходов и расходов: ${my}`:'')+(im?T`, фото: ${im}`:'')+T(' — плюс настройки. Совпадающие записи обновятся, а то, что уже есть только здесь, останется.'),btns)}
 addEventListener('hashchange',()=>syncIn());
-try{if(sessionStorage.getItem('cal.synced')){sessionStorage.removeItem('cal.synced');setTimeout(()=>toast(T('✓ Записи с компьютера загружены')),400)}}catch(e){}
+try{const s=sessionStorage.getItem('cal.synced');if(s){sessionStorage.removeItem('cal.synced');setTimeout(()=>toast(s==='phone'?T('✓ Записи с телефона загружены'):T('✓ Записи с компьютера загружены')),400)}}catch(e){}
 permUi();render();loop();androidSync();
 addEventListener('load',()=>syncIn()); // после загрузки библиотек QR в конце файла
 try{if(!localStorage.getItem('cal.mig2')){localStorage.setItem('cal.mig2','1');const t0=ymd(new Date());

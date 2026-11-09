@@ -2711,8 +2711,9 @@ function alarmList(withTimer){const now=Date.now(),L=[];
     return L}
 // ПК: расписание напоминаний → помощник gemday-helper.ps1 → отложенные уведомления Windows (придут и при закрытой программе)
 let pcHelper=false,pcT=0;
-function pcSync(){if(window.CrystalAndroid||location.protocol!=='file:')return;clearTimeout(pcT);pcT=setTimeout(()=>{let j;try{j=JSON.stringify(alarmList(true))}catch(e){return}
-  fetch('http://127.0.0.1:47613/alarms',{method:'POST',body:j}).then(r=>{pcHelper=r.ok}).catch(()=>{pcHelper=false})},800)}
+const PCK=(()=>{try{const u=new URL(location.href),k=u.searchParams.get('gk');if(k&&/^[0-9a-f]{48}$/.test(k)){sessionStorage.setItem('gd.k',k);u.searchParams.delete('gk');history.replaceState(null,'',u.pathname+u.search+u.hash)}const v=sessionStorage.getItem('gd.k')||'';return /^[0-9a-f]{48}$/.test(v)?v:''}catch(e){return''}})();
+function pcSync(){if(window.CrystalAndroid||location.protocol!=='file:'||!PCK)return;clearTimeout(pcT);pcT=setTimeout(()=>{let j;try{j=JSON.stringify(alarmList(true))}catch(e){return}
+  fetch('http://127.0.0.1:47613/alarms?k='+PCK,{method:'POST',body:j}).then(r=>{pcHelper=r.ok}).catch(()=>{pcHelper=false})},800)}
 setInterval(pcSync,30000);
 function androidSync(){
   pcSync();if(!window.CrystalAndroid)return;
@@ -4676,7 +4677,6 @@ async function botAnalyze(c){
   catch(e){w.remove();return{err:1}}}
 $('#botSend').onclick=()=>{if(botPend.length){const t=$('#botText').value.trim();traySend().then(()=>{if(t)botSend(t)})}else botSend($('#botText').value)};
 $('#botText').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#botSend').click()}};
-async function botImages(fs){fs=[...fs].filter(f=>f&&/^image\//.test(f.type)).slice(0,6);if(fs.length>1)botLast=null;for(const f of fs)await botImage(f)}
 // лоток: несколько скриншотов (вставка Ctrl+V по одному, выбор файлов, перетаскивание) — отправляются вместе
 let botPend=[];
 function trayAdd(fs){for(const f of [...fs])if(f&&/^image\//.test(f.type)&&botPend.length<6)botPend.push({f,u:URL.createObjectURL(f)});trayPaint();$('#botText').focus()}

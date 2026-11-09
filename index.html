@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>if(location.protocol.startsWith('http')){const l=document.createElement('link');l.rel='manifest';l.href='manifest.json';document.head.append(l)}</script>
-<script>/* значок окна: Pro — сразу свой (Edge берёт для панели задач первый объявленный значок) */{let pr=false;try{const p=JSON.parse(localStorage.getItem('cal.pro'))||{};pr=/[?&]pro=dev/.test(location.search)||!!(p.plan&&p.plan!=='dev'&&(p.until===0&&p.plan!=='trial'||Date.now()<p.until))}catch(e){}
+<script>/* значок окна: Pro — сразу свой (Edge берёт для панели задач первый объявленный значок) */{let pr=false;try{const p=JSON.parse(localStorage.getItem('cal.pro'))||{};pr=/[?&]pro=dev\b/.test(location.search)||!!(p.plan&&p.plan!=='dev'&&(p.until===0&&p.plan!=='trial'||Date.now()<p.until))}catch(e){}
 const ic=pr?'icon-pro.png':'icon-192.png';document.write('<link rel="icon" sizes="192x192" href="'+ic+'"><link rel="apple-touch-icon" href="'+ic+'">');if(pr)document.title='Gemday Pro'}</script>
 <noscript><link rel="icon" href="icon-192.png"></noscript>
 <script>try{const st=JSON.parse(localStorage.getItem('cal.settings'))||{};document.documentElement.dataset.theme=st.v===2&&st.theme||'hud'}catch(e){}</script>

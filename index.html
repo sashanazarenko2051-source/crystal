@@ -475,6 +475,7 @@ td.c{color:var(--mut)}
 .set .stop{grid-template-columns:1fr 1fr}.set .sstyle,.set .stop>.slang:first-child{grid-column:1/-1}.set .spro>.sw{margin:0}
 .set .sstyle .themes{margin-bottom:14px}
 @media(max-width:1100px){.set .stop{grid-template-columns:1fr}}
+.dsacts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.dsacts button{margin:0!important;width:100%;min-height:46px;display:flex;align-items:center;justify-content:center;text-align:center}.dsrow input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--text);font:inherit;color-scheme:dark}@media(max-width:460px){.dsacts{grid-template-columns:1fr}}
 .slic p{color:var(--mut);font-size:13px;line-height:1.5}.lic{margin:6px 0;padding-left:18px;color:var(--mut);font-size:12.5px;line-height:1.55}.lic b{color:var(--text)}
 .set .sdanger{border-color:color-mix(in srgb,var(--red) 35%,var(--line))}
 @media(max-width:1100px){.set .scols{grid-template-columns:1fr}}
@@ -1199,7 +1200,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
 .bact .pill.on{background:linear-gradient(90deg,#e11d48,#f472b6);color:#fff;border-color:transparent}
 .proup{background:linear-gradient(120deg,color-mix(in srgb,#f472b6 18%,transparent),color-mix(in srgb,#ffbe46 14%,transparent))!important;border:1px solid color-mix(in srgb,#f472b6 40%,var(--line))}.proup small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
 .fjobs{margin-top:6px}.fjobs button{font-size:12.5px}.jobin{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:260px}.jobin input{width:100%;box-sizing:border-box}.sjobs{flex-wrap:wrap;gap:8px}
-.day.dcol{background:color-mix(in srgb,var(--dcol) 26%,var(--soft))!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dcol) 55%,transparent)}.dsrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.dsrow label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.dsrow input{width:100%;box-sizing:border-box}#partCv{max-width:min(100%,46vh);height:auto}.dsl{display:block;color:var(--mut);margin:10px 0 6px}.dscols span{width:26px;height:26px}.dscols span:first-child{display:grid;place-items:center;background:var(--soft);font-size:12px}
+.day.dcol{background:color-mix(in srgb,var(--dcol) 26%,var(--soft))!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dcol) 55%,transparent)}.dsrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.dsrow label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.dsrow input{width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--text);font:inherit;color-scheme:dark}#partCv{max-width:min(100%,46vh);height:auto}.dsl{display:block;color:var(--mut);margin:10px 0 6px}.dscols span{width:26px;height:26px}.dscols span:first-child{display:grid;place-items:center;background:var(--soft);font-size:12px}
 .prolist{margin:8px 0 0;padding-left:18px;color:var(--mut);font-size:14px;line-height:1.6;text-align:left}
 
 /* ---- Бот и Деньги ---- */
@@ -1767,7 +1768,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
   <small class="dsl">Цвет дня в календаре</small><div class="colors dscols" id="dsCols"></div>
   <small class="dsl">Записать работу</small><div class="cats" id="dsJobs"></div>
   <div class="dsrow"><label>Начало<input type="time" id="dsStart"></label><label>Конец<input type="time" id="dsEnd"></label></div>
-  <div class="dacts" style="justify-content:flex-start;flex-wrap:wrap;margin-top:10px"><button class="cta" id="dsWork" type="button">💼 Записать работу</button><button class="pill" id="dsHrs" type="button">🕒 Сон · работа · свободное</button><button class="pill" id="dsAdd" type="button">✎ Задача / дата</button><button class="pill" id="dsClose" type="button">Готово</button></div>
+  <div class="dsacts"><button class="cta" id="dsWork" type="button">💼 Записать работу</button><button class="pill" id="dsHrs" type="button">🕒 Сон · работа · свободное</button><button class="pill" id="dsAdd" type="button">✎ Задача / дата</button><button class="pill" id="dsClose" type="button">Готово</button></div>
 </div></dialog>
 <dialog id="dosdlg" class="mdlg"><div class="mde" style="--c:#f472b6;max-width:640px">
   <h3 style="margin:0 0 10px">📋 Досье для врача</h3><div id="dosTxt"></div>

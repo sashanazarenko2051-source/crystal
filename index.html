@@ -1575,7 +1575,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
         <div class="scard">
           <h3 id="setSync">Перенос записей между устройствами</h3>
           <div class="btns" style="justify-content:flex-start"><button class="pill" id="qrBtn">📱 На телефон по QR-коду</button><button class="pill" id="pcBtn" hidden>💻 Подключиться к ПК</button><button class="pill" id="expBtn">⬇ Сохранить в файл</button><button class="pill" id="impBtn">⬆ Загрузить из файла</button></div>
-          <div class="sw" id="linkBox" hidden><span>🔔 Напоминания общие с другим устройством — задачи и даты приходят и туда, и сюда</span><button class="pill" id="linkOff">Отвязать</button></div>
+          <div class="sw" id="linkBox" hidden><span>🔄 <b>Синхронизация включена</b> — записи, заметки, цикл, доходы и расходы сами переходят между связанными устройствами (нужен интернет)<br><small id="linkSt" style="color:var(--mut)"></small></span><span class="btns"><button class="pill" id="linkNow">🔄 Синхронизировать сейчас</button><button class="pill" id="linkOff">Отвязать</button></span></div><div class="sw" id="linkNo"><span>⚠ Устройства пока не связаны. На ПК нажмите «📱 На телефон по QR-коду» (или «Синхронизация устройств» слева), на телефоне — «💻 Подключиться к ПК» и наведите камеру на код. После этого всё будет синхронизироваться само.</span></div>
           <input type="file" id="impFile" accept=".json,application/json" hidden>
           <p>📱 QR-код: наведите камеру телефона — записи, заметки, праздники и настройки откроются на телефоне. Или сохраните файл на одном устройстве и загрузите на другом.</p>
         </div>
@@ -3889,8 +3889,13 @@ const devId=(()=>{try{let d=localStorage.getItem('cal.dev');if(!/^[a-z0-9]{12}$/
 let link=(()=>{const x=load('cal.link',null);return x&&/^crys-[a-z0-9]{24}$/.test(x.topic)&&/^[A-Za-z0-9_-]{43}$/.test(x.key)?{topic:x.topic,key:x.key,last:/^[A-Za-z0-9]{1,20}$/.test(x.last||'')?x.last:''}:null})();
 const remOf=()=>notes.filter(n=>n.type==='rem'||n.type==='date');
 function linkBridge(){try{if(window.CrystalAndroid&&CrystalAndroid.setLink)CrystalAndroid.setLink(link?JSON.stringify({topic:link.topic,key:link.key,dev:devId}):'')}catch(e){}}
-function linkSave(topic,key){if(link&&link.topic===topic&&link.key===key)return;link={topic,key,last:''};save('cal.link',link);linkBridge();linkUi();linkPush(true);linkPull()}
-function linkUi(){const b=$('#linkBox');if(b)b.hidden=!link}
+function linkSave(topic,key){if(link&&link.topic===topic&&link.key===key)return;link={topic,key,last:''};save('cal.link',link);linkBridge();linkUi();linkPush(true);linkPull();allReq();allPush(true)}
+// «пришли всё»: другое устройство в ответ отправит полное содержимое
+function allReq(){try{if(link)fetch(`${RELAY}${link.topic}?tags=req`,{method:'PUT',body:'req.'+devId}).catch(()=>{})}catch(e){}}
+function linkUi(){const b=$('#linkBox');if(b)b.hidden=!link;const n=$('#linkNo');if(n)n.hidden=!!link;
+  const st=load('cal.syncAt',{})||{},f=t=>t?new Date(t).toLocaleString(LOC,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+  const e=$('#linkSt');if(e)e.textContent=T`Отправлено: ${f(st.out)} · получено: ${f(st.in)}`}
+function syncMark(k){const st=load('cal.syncAt',{})||{};st[k]=Date.now();save('cal.syncAt',st);linkUi()}
 let linkT=0,linkBusy=false;
 function linkPush(force){
   try{if(!link||linkBusy)return}catch(e){return} // при запуске программы связь ещё не прочитана
@@ -3908,6 +3913,7 @@ async function linkPull(){
     const raw=unb64u(link.key);let changed=false,last=link.last;const allQ=[];
     for(const line of (await r.text()).split('\n')){if(!line.trim())continue;let m;try{m=JSON.parse(line)}catch(e){continue}
       if(m.event!=='message'||typeof m.id!=='string')continue;last=m.id;
+      if(Array.isArray(m.tags)&&m.tags.includes('req')){if(m.message!=='req.'+devId){allPush.sig=null;setTimeout(()=>allPush(true),800)}continue}
       if(Array.isArray(m.tags)&&m.tags.includes('all')){const a=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(m.attachment&&m.attachment.url||'');if(a)allQ.push(a[1]);continue}
       if(!Array.isArray(m.tags)||!m.tags.includes('rem')||typeof m.message!=='string'||!m.message.startsWith('c1.'))continue;
       let p;try{p=JSON.parse(await zipStr(await dec(unb64u(m.message.slice(3)),raw),true))}catch(e){continue}
@@ -3919,20 +3925,20 @@ async function linkPull(){
         if(ix.has(n.id)){const o=notes[ix.get(n.id)];if(JSON.stringify(o)!==JSON.stringify(n)){notes[ix.get(n.id)]=n;changed=true}}else{ix.set(n.id,notes.length);notes.push(n);changed=true}}}
     // полное содержимое с другого устройства: берём самое свежее чужое
     for(let i=allQ.length-1;i>=0;i--){let p;try{p=JSON.parse(await zipStr(await relayGet(allQ[i],raw),true))}catch(e){continue}
-      if(!p||typeof p!=='object'||p.dev===devId)continue;try{allApply(p)}catch(e){}break}
+      if(!p||typeof p!=='object'||p.dev===devId)continue;try{allApply(p);syncMark('in')}catch(e){}break}
     if(last!==link.last){link.last=last;save('cal.link',link)}
     if(changed){save('cal.notes',notes);render();androidSync();linkPush.sig=JSON.stringify(remOf());save('cal.linkIds',remOf().map(n=>n.id));toast(T('🔔 Напоминания обновлены с другого устройства'))}
   }catch(e){}finally{linkBusy=false}}
 // ---- полная синхронизация связанных устройств: записи, заметки, дни, цикл, доходы/расходы, цвета дней ----
 let allT=0,allLast=0,allPend=false;
-async function allPush(){try{if(!link||!navigator.onLine)return;
-  const body={notes,memos,days:dayCats,cyc,money:mlog,dcol:dayCol},sig=JSON.stringify(body);if(sig===allPush.sig)return;
-  const wait=60000-(Date.now()-allLast);if(wait>0){clearTimeout(allT);allT=setTimeout(allPush,wait+500);return} // не чаще раза в минуту
+async function allPush(force){try{if(!link||!navigator.onLine)return;
+  const body={notes,memos,days:dayCats,cyc,money:mlog,dcol:dayCol},sig=JSON.stringify(body);if(!force&&sig===allPush.sig&&Date.now()-allLast<2*36e5)return;
+  const wait=(force?8000:60000)-(Date.now()-allLast);if(wait>0){clearTimeout(allT);allT=setTimeout(()=>allPush(force),wait+500);return} // не чаще раза в минуту
   const L=load('cal.linkAll',{})||{},ni=notes.map(n=>n.id),mi=memos.map(m=>m.id),xi=mlog.map(x=>x.id),
     dif=(a,b)=>{const B=new Set(b);return Array.isArray(a)?a.filter(i=>typeof i==='string'&&!B.has(i)).slice(0,500):[]};
   const p={v:2,dev:devId,t:Date.now(),...body,del:dif(L.n,ni),mdel:dif(L.m,mi),xdel:dif(L.x,xi)};
   allLast=Date.now();await relayPut(link.topic,await enc(await zipStr(JSON.stringify(p)),unb64u(link.key)),'all');
-  allPush.sig=sig;save('cal.linkAll',{n:ni,m:mi,x:xi})}catch(e){}}
+  allPush.sig=sig;save('cal.linkAll',{n:ni,m:mi,x:xi});syncMark('out')}catch(e){}}
 function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.filter(x=>typeof x==='string'):[]);let ch=false,ex=false;
   if(Array.isArray(p.notes)){const del=ids(p.del),b=notes.length;notes=notes.filter(n=>!del.has(n.id));if(notes.length!==b)ch=true;
     const ix=new Map(notes.map((n,i)=>[n.id,i]));for(const n of cleanList(p.notes,cleanNote)){if(ix.has(n.id)){const i=ix.get(n.id);if(S(notes[i])!==S(n)){notes[i]=n;ch=true}}else{ix.set(n.id,notes.length);notes.push(n);ch=true}}}
@@ -3947,7 +3953,9 @@ function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.fi
   if(ch){save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
   if(ex){const busy=/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend){allPend=false;location.reload()}});
-setInterval(allPush,20000);
+setInterval(()=>allPush(),20000);
+$('#linkNow').onclick=async()=>{if(!link)return;toast(T('🔄 Синхронизирую…'));allReq();await allPush(true);await linkPull();setTimeout(linkPull,9000);setTimeout(()=>{linkPull();linkUi()},20000)};
+addEventListener('load',()=>setTimeout(()=>{if(link)allReq()},4000)); // при запуске — попросить свежее у другого устройства
 setInterval(linkPull,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)linkPull()});
 addEventListener('load',()=>{linkUi();linkBridge();setTimeout(()=>{linkPull();linkPush()},1500)});

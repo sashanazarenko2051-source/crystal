@@ -648,6 +648,9 @@ dialog .sub{color:var(--mut);font-size:14px;margin-bottom:12px}
 @keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(18deg)}40%{transform:rotate(-16deg)}60%{transform:rotate(10deg)}80%{transform:rotate(-6deg)}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140px);background:var(--dlg);border:1px solid var(--line);padding:12px 18px;border-radius:14px;transition:.3s;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw}
 .toast.on{transform:translateX(-50%) translateY(0)}
+/* спрятанное сообщение — совсем невидимо (длинное раньше торчало снизу); на телефоне — над нижней панелью */
+.toast{opacity:0;visibility:hidden;transform:translateX(-50%) translateY(24px);transition:opacity .25s,transform .25s,visibility 0s .25s;width:max-content;max-width:min(90vw,520px);box-sizing:border-box;text-align:center;line-height:1.35}.toast.on{opacity:1;visibility:visible;transition:opacity .25s,transform .25s}
+@media(max-width:760px){.toast{bottom:calc(92px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px)}}
 .banner{display:none;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;border-radius:var(--rs);background:color-mix(in srgb,var(--warm) 10%,transparent);border:1px solid color-mix(in srgb,var(--warm) 35%,transparent);color:var(--warm);font-size:13px}
 .banner span{flex:1}
 
@@ -1850,7 +1853,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.13',APP_DATE='10.11.2026';
+const APP_VER='3.14',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -2132,7 +2135,8 @@ let sel=ymd(new Date());
 function toast(t,undo){
   const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.h);
   if(undo){const b=document.createElement('button');b.className='pill';b.textContent=T('↺ Вернуть');b.style.marginLeft='12px';b.onclick=()=>{undo();el.classList.remove('on')};el.append(b)}
-  toast.h=setTimeout(()=>el.classList.remove('on'),undo?6000:2400);
+  toast.h=setTimeout(()=>el.classList.remove('on'),undo?6000:Math.min(6000,2400+String(t).length*25)); // длинный текст — чуть дольше, чтобы успеть прочитать
+  el.onclick=e=>{if(!e.target.closest('button'))el.classList.remove('on')}; // нажатие — закрыть
 }
 
 // окно программы вылезло за край экрана — вернуть на место
@@ -3378,6 +3382,7 @@ const canNotify='Notification'in window;
 function permOff(msg){settings.noBanner=true;save('cal.settings',settings);permUi();toast(msg)}
 function askPerm(){
   const fallback=T('Напоминания будут приходить окном Gemday со звуком');
+  if(window.CrystalAndroid)return toast(T('✓ Напоминания приходят уведомлениями телефона'));
   if(!canNotify)return permOff(T('Здесь нет системных уведомлений. ')+fallback);
   if(Notification.permission==='granted')return toast(T('✓ Уведомления уже включены'));
   if(Notification.permission==='denied')return permOff(T('Уведомления запрещены в браузере. ')+fallback);
@@ -4553,7 +4558,10 @@ async function ocrRead(c,big){
   if(!window.Tesseract)await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://cdn.jsdelivr.net/npm/tesseract.js@${OCRV}/dist/tesseract.min.js`;sc.integrity='sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F';sc.crossOrigin='anonymous';sc.onload=ok;sc.onerror=no;document.head.append(sc)});
   if(!ocrW){const l=OCRL[LANG]||'eng';ocrW=await Tesseract.createWorker(l==='eng'?'eng':l+'+eng',1,{workerPath:`https://cdn.jsdelivr.net/npm/tesseract.js@${OCRV}/dist/worker.min.js`,corePath:`https://cdn.jsdelivr.net/npm/tesseract.js-core@${OCRV}`,langPath:'https://tessdata.projectnaptha.com/4.0.0_fast'})}
   // подготовка: крупнее (мелкий текст сайтов), серый, светлый текст на тёмном фоне → тёмный на светлом
-  const k=big==='small'?Math.min(1,Math.max(.35,900/c.width)):big?Math.min(3.2,4200/c.width):Math.max(1,Math.min(2,2200/c.width)),P=document.createElement('canvas');P.width=Math.round(c.width*k);P.height=Math.round(c.height*k);
+  let k=big==='small'?Math.min(1,Math.max(.35,900/c.width)):big?Math.min(3.2,4200/c.width):Math.max(1,Math.min(2,2200/c.width));
+  // не больше ~6 Мп на телефоне (иначе распознавание длинного скриншота идёт минуты или не хватает памяти)
+  {const mp=window.CrystalAndroid||/Android|iPhone|iPad/i.test(navigator.userAgent)?6e6:14e6;if(c.width*c.height*k*k>mp)k=Math.sqrt(mp/(c.width*c.height))}
+  const P=document.createElement('canvas');P.width=Math.round(c.width*k);P.height=Math.round(c.height*k);
   const g=P.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(c,0,0,P.width,P.height);
   const D=g.getImageData(0,0,P.width,P.height),d=D.data;let sum=0;
   for(let i=0;i<d.length;i+=4){const y=.299*d[i]+.587*d[i+1]+.114*d[i+2];d[i]=d[i+1]=d[i+2]=y;sum+=y}
@@ -4788,16 +4796,26 @@ async function botImage(f){
   const url=URL.createObjectURL(f),img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url});
   const k=Math.min(1,2600/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   const data=c.toDataURL('image/jpeg',.85);botSay(`<img src="${data}" alt="">`,true);
-  const r=await botAnalyze(c);if(r.err){botSay(esc(T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));botCard({title:'',ep:'',se:'',date:'',time:'',text:'',amount:0},c.toDataURL('image/jpeg',.6));return}
+  const r=await botAnalyzeTO(c);if(r.txt)return botTextNote(r.txt);if(r.err){botSay(esc(r.to?T('⚠ Фото читалось слишком долго — попробуйте скриншот покороче или по одному.'):T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));botCard({title:'',ep:'',se:'',date:'',time:'',text:'',amount:0},c.toDataURL('image/jpeg',.6));return}
   const{a,thumb,ml,o}=r;if(ml.length>=2&&!/(выход|серии|серия|сезон|episode|премьер)/i.test(o.text)){botMoneyCard(ml);return}
   if(!botMerge(a,thumb))botCard(a,thumb);if(ml.length>=2)botMoneyCard(ml)}
 async function botCanvas(f){if(!f||!/^image\//.test(f.type)||f.size>15e6)return null;
   const url=URL.createObjectURL(f),img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url});
   const k=Math.min(1,2600/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);return c}
 // прочитать один скриншот: название, дата/таймер, ссылка, обложка, суммы
-async function botAnalyze(c){
-  const w=botSay('⏳ '+esc(T('Читаю текст на фото…')));
+// скриншот с обычным текстом (заметка, список, переписка) — не фильм и не выписка: читаем один раз и сохраняем текстом
+const MOVIE_RX=/(выход|серии|серия|сезон|episode|премьер|смотреть онлайн|трейлер|season)/i; /*i18n:keep*/
+function isTextShot(o){const L=o.lines.filter(l=>(l.t.match(/\p{L}/gu)||[]).length>=4);return L.length>=8&&!MOVIE_RX.test(o.text)}
+function shotText(o){const R=(o.rows&&o.rows.length?o.rows.map(r=>({t:r.t,y0:r.y})):o.lines).slice().sort((a,b)=>a.y0-b.y0);return R.filter(l=>l.y0>o.H*.045&&/[\p{L}\d]{2,}/u.test(l.t)).map(l=>l.t.trim()).join('\n').replace(/\n{3,}/g,'\n\n').trim()}
+function botTextNote(txt){txt=String(txt||'').trim().slice(0,20000);if(!txt)return botSay(esc(T('На фото не нашлось текста')));
+  const L=txt.split('\n'),m=cleanMemo({id:newId(),title:L.length>2?L[0].slice(0,120):'',text:(L.length>2?L.slice(1):L).join('\n'),color:COLORS[1],pin:false,upd:Date.now()});memos.unshift(m);saveMemos();try{renderMemos()}catch(e){}
+  botSay(esc(T`📝 Записал текст с фото в заметки (${L.length} ${plural(L.length,T('строка'),T('строки'),T('строк'))}):`)+'\n'+esc(txt.slice(0,280)+(txt.length>280?'…':'')),false,[[T('Открыть'),()=>showView('notes')],[T('↺ Отменить'),()=>{memos=memos.filter(x=>x.id!==m.id);saveMemos();try{renderMemos()}catch(e){}botSay(esc(T('Отменено — заметка удалена')))}]])}
+// чтение одного фото с ограничением по времени: зависшее распознавание сбрасываем
+function botAnalyzeTO(c,label){const h={};let tid;return Promise.race([botAnalyze(c,label,h).finally(()=>clearTimeout(tid)),new Promise(ok=>{tid=setTimeout(()=>{try{h.w&&h.w.remove()}catch(e){}try{ocrW&&ocrW.terminate()}catch(e){}ocrW=null;ok({err:1,to:1})},180000)})])}
+async function botAnalyze(c,label,h){
+  const w=botSay('⏳ '+esc(label||T('Читаю текст на фото…')));if(h)h.w=w;
   try{const o=await ocrRead(c),a=ocrAnalyze(o);
+    {const ml0=ocrMoney(o);if(ml0.length<2&&isTextShot(o)){w.remove();return{a,thumb:'',ml:ml0,o,txt:shotText(o)}}}
     if(!a.date||!a.time||!a.title||!a.url&&o.lines.some(l=>l.y0<o.H*.15&&/\S\.\s?[a-zа-я]{2,}/i.test(l.t))){const o2=await ocrRead(c,1),a2=ocrAnalyze(o2);if(!a.url)a.url=a2.url;if(a2.date&&(!a.date||a2.time&&!a.time)){a.date=a2.date;a.time=a2.time}if(!a.title)a.title=a2.title;if(!a.ep)a.ep=a2.ep;if(!a.se)a.se=a2.se}
     // крупный таймер «01:05:53:51» — распознаётся только на уменьшенной копии
     if(!a.date){try{const hd=o.lines.find(l=>/(?<![\p{L}])(осталось|до выхода|до старта|выйдет через|до премьеры|countdown|next episode)(?![\p{L}])|след\.?\s*сер|выход\S*\s+след/iu.test(l.t)&&!/(вышел|сняли|жанр|описание)/iu.test(l.t)); /*i18n:keep*/
@@ -4824,8 +4842,11 @@ async function traySend(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.re
   if(fs.length<2){if(fs[0])await botImage(fs[0]);return}
   const cs=[];for(const f of fs){const c=await botCanvas(f);if(c)cs.push(c)}
   botSay(cs.map(c=>`<img src="${c.toDataURL('image/jpeg',.7)}" alt="" style="max-width:${Math.floor(96/cs.length)}%;margin:2px">`).join(''),true);
-  const R=[];for(const c of cs){const r=await botAnalyze(c);if(!r.err)R.push(r)}
-  if(!R.length)return botSay(esc(T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));
+  const R=[];let to=0;for(let i=0;i<cs.length;i++){const r=await botAnalyzeTO(cs[i],T`Читаю фото ${i+1} из ${cs.length}…`);if(r.to)to++;if(!r.err)R.push(r)}
+  if(!R.length)return botSay(esc(to?T('⚠ Фото читались слишком долго — попробуйте отправить по одному.'):T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));
+  if(to)botSay(esc(T`⚠ Не удалось прочитать фото: ${to}`));
+  // скриншоты с текстом — одной заметкой по порядку
+  {const tx=R.filter(r=>r.txt);if(tx.length&&tx.length*2>=R.length){botTextNote(tx.map(r=>r.txt).join('\n\n'));R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}
   const movie=R.filter(r=>!(r.ml.length>=2&&!/(выход|серии|серия|сезон|episode|премьер)/i.test(r.o.text)));R.filter(r=>!movie.includes(r)).forEach(r=>botMoneyCard(r.ml));if(!movie.length)return;
   const tsel=movie.filter(r=>r.a.title).sort((x,y)=>y.a.tscore*(y.a.url?1.5:1)*(y.thumb?1.2:1)-x.a.tscore*(x.a.url?1.5:1)*(x.thumb?1.2:1))[0],
     dsel=movie.filter(r=>r.a.date).sort((x,y)=>(y.a.dw>=0)-(x.a.dw>=0)||(y.a.time?1:0)-(x.a.time?1:0))[0],usel=movie.find(r=>r.a.url),base=tsel||dsel||movie[0];

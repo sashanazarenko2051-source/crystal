@@ -1752,7 +1752,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
   <button class="pill" id="scX">Отмена</button></div></dialog>
 <dialog id="prodlg" class="mdlg"><div class="mde" style="--c:#f472b6;text-align:center;max-width:460px">
   <div style="font-size:46px">💎</div><h3 style="margin:4px 0">Gemday Pro</h3>
-  <ul class="prolist"><li>🌸 «Для себя» — календарь цикла и интима с прогнозом</li><li>🤖 Свой бот: фото фильма или мультика → день выхода серии или просмотр; заметки и чеки с фото; текст и голос</li><li>💰 Доходы и расходы по месяцам и годам</li></ul>
+  <ul class="prolist"><li>🌸 Цикл и здоровье — прогноз месячных и овуляции, фазы, досье для врача</li><li>🤖 Умный помощник — фильм со скриншота сам попадает в календарь; команды текстом и голосом</li><li>💰 Доходы и расходы по месяцам и годам</li><li>🎬 Фильмы и важные дни с обложками и отсчётом</li></ul>
   <div class="plans" id="proPlans"></div>
   <small style="color:var(--mut)" id="proNote"></small>
   <div class="dacts" style="justify-content:center;margin-top:10px"><button class="pill" id="proClose">Закрыть</button></div>
@@ -3792,8 +3792,10 @@ const fx=(()=>{
 setInterval(loop,50);
 $('#appVer').textContent=`Gemday v${APP_VER} · ${APP_DATE}`;
 twLoad();
-$('#suppBtn').onclick=()=>$('#sdlg').showModal();
-$('#suppSide').onclick=()=>$('#sdlg').showModal();
+// без Pro — предложение Gemday Pro (7 дней бесплатно / месяц / год / навсегда); с Pro — благодарность
+const suppOpen=()=>{if(!isPro())proShow();else $('#sdlg').showModal()};
+$('#suppBtn').onclick=suppOpen;
+$('#suppSide').onclick=suppOpen;
 $('#sdlgX').onclick=()=>$('#sdlg').close();
 if(window.CrystalAndroid){document.documentElement.classList.add('android');setInterval(androidSync,30000)}
 // ---- синхронизация ПК → телефон через QR-код: данные внутри ссылки после «#» (эта часть на сервер не отправляется) ----
@@ -4130,14 +4132,14 @@ function proShow(){
 }
 $('#proOpen').onclick=proShow;$('#proLife').onclick=()=>{proShow();const b=$('#proPlans [data-plan=life]');if(b){b.classList.add('best');b.scrollIntoView({block:'nearest'})}};$('#proClose').onclick=()=>$('#prodlg').close();
 $('#proPlans').onclick=e=>{const b=e.target.closest('[data-plan]');if(!b||b.disabled)return;const id=b.dataset.plan;
-  if(id==='trial'){if(pro.trial)return;pro.trial=Date.now();if(!isPro()){pro.plan='trial';pro.until=Date.now()+7*864e5}proSave();$('#prodlg').close();toast(T('💎 Pro включён на 7 дней'));return}
+  if(id==='trial'){if(pro.trial)return;pro.trial=Date.now();if(!isPro()){pro.plan='trial';pro.until=Date.now()+7*864e5}proSave();$('#prodlg').close();toast(T('💎 Pro включён на 7 дней — открываю Gemday Pro…'));setTimeout(()=>location.reload(),1500);return}
   if(window.CrystalAndroid&&CrystalAndroid.buy){try{CrystalAndroid.buy(id)}catch(e){toast(T('Не удалось открыть оплату'))}}
   else toast(T('Покупка — в приложении Gemday из Google Play'))};
 // ответ Google Play (Android вызывает window.gemdayPro): {plan, until} или {prices:{month:'…',year:'…',life:'…'}}
 window.gemdayPro=j=>{try{const o=typeof j==='string'?JSON.parse(j):j;if(o.prices&&typeof o.prices==='object')for(const k of ['month','year','life'])if(typeof o.prices[k]==='string')proPrices[k]=o.prices[k].slice(0,30);
-  if(['month','year','life'].includes(o.plan)){pro.plan=o.plan;pro.until=o.plan==='life'?0:Math.max(0,+o.until||0);proSave();if($('#prodlg').open)$('#prodlg').close();toast(T('💎 Спасибо! Gemday Pro включён'))}
+  if(['month','year','life'].includes(o.plan)){pro.plan=o.plan;pro.until=o.plan==='life'?0:Math.max(0,+o.until||0);proSave();if($('#prodlg').open)$('#prodlg').close();toast(T('💎 Спасибо! Gemday Pro включён — открываю Gemday Pro…'));setTimeout(()=>location.reload(),1500)}
   if(o.plan==='none'&&pro.plan!=='trial'&&pro.plan!=='dev'){pro.plan='';pro.until=0;proSave()}}catch(e){}};
-setInterval(()=>{if(pro.plan==='trial'&&!isPro())proPaint()},6e4);
+setInterval(()=>{if(pro.plan==='trial'&&!isPro()){proPaint();if(document.title==='Gemday Pro'&&!PRO_DEV)location.reload()}},6e4);
 
 // ======== «Для себя»: цикл и интим ========
 // cal.cyc = {per:[ymd…], day:{ymd:{i:0|1|2, m:'', s:[], t:''}}, len:28, plen:5, rem:true, fert:true}

@@ -1871,7 +1871,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.22',APP_DATE='10.11.2026';
+const APP_VER='3.23',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -2204,13 +2204,27 @@ const TPERS={neon:'r,sans,grid,glow,8',cyber:'s,tech,lines,glow,6',matrix:'s,mon
 const TSHAPE={s:[4,3],m:[12,9],r:[20,14],p:[28,20]},TFONT={sans:'',serif:'Georgia,"Iowan Old Style","Noto Serif","Times New Roman",serif',mono:'"Cascadia Code",Consolas,ui-monospace,monospace',tech:'Bahnschrift,"DIN Alternate","Roboto Condensed","Arial Narrow",sans-serif',soft:'"Trebuchet MS","Segoe UI",Verdana,sans-serif'};
 const tMix=(c,p)=>`color-mix(in srgb,${c} ${p}%,transparent)`;
 const tPat=(k,a)=>({dots:`radial-gradient(${tMix(a,22)} 1.2px,transparent 1.8px) 0 0/22px 22px`,grid:`linear-gradient(${tMix(a,12)} 1px,transparent 1px) 0 0/30px 30px,linear-gradient(90deg,${tMix(a,12)} 1px,transparent 1px) 0 0/30px 30px`,lines:`repeating-linear-gradient(0deg,${tMix(a,9)} 0 1px,transparent 1px 7px)`,diag:`repeating-linear-gradient(135deg,${tMix(a,10)} 0 2px,transparent 2px 20px)`,waves:`radial-gradient(circle at 50% 100%,transparent 40%,${tMix(a,14)} 42% 46%,transparent 48%) 0 0/56px 28px`,checks:`conic-gradient(${tMix(a,8)} 25%,transparent 0 50%,${tMix(a,8)} 0 75%,transparent 0) 0 0/40px 40px`}[k]||'');
+// светлые пастельные темы и яркий цветной фон тёмных тем
+const TLIGHT=new Set(['sakura','peach','mint','arctic','lavender']);
+const tPastel=t=>`color-mix(in srgb,${t.a} 9%,#fbfaff)`;
+const tBg=t=>TLIGHT.has(t.id)
+  ?`radial-gradient(900px 600px at 90% -10%,${tMix(t.a,30)},transparent 65%),radial-gradient(800px 600px at -10% 110%,${tMix(t.b,32)},transparent 65%),linear-gradient(160deg,color-mix(in srgb,${t.a} 14%,#fff),color-mix(in srgb,${t.b} 16%,#fff))`
+  :`radial-gradient(900px 620px at 88% -12%,${tMix(t.a,42)},transparent 65%),radial-gradient(820px 620px at -12% 112%,${tMix(t.b,34)},transparent 65%),radial-gradient(600px 400px at 50% 50%,${tMix(t.a,10)},transparent 70%),linear-gradient(160deg,color-mix(in srgb,${t.a} 18%,${t.bg}),${t.bg} 55%,color-mix(in srgb,${t.b} 16%,${t.bg}))`;
 function tPers(t){const p=(TPERS[t.id]||'').split(',');if(p.length<5)return null;const[sh,fo,pa,bo,ti]=p;return{r:TSHAPE[sh]||TSHAPE.m,font:TFONT[fo]||'',pat:tPat(pa,t.a),bo,ti:+ti||0}}
-{const css=THEMES.map(t=>{const p=tPers(t);if(!p)return'';const S=`[data-theme=${t.id}]`,glow=p.bo==='glow';
-  return `${S}{--r:${p.r[0]}px;--rs:${p.r[1]}px;--panel:color-mix(in srgb,${t.a} ${p.ti}%,rgba(255,255,255,.035));--line:${tMix(t.a,p.bo==='bold'?48:glow?30:16)};--bgimg:${p.pat?p.pat+',':''}radial-gradient(1100px 700px at 100% 0%,${tMix(t.a,22)},transparent 60%),radial-gradient(900px 600px at 0% 100%,${tMix(t.b,14)},transparent 60%)${p.font?`;--font:${p.font}`:''}}`
+{const css=THEMES.map(t=>{const p=tPers(t);if(!p)return'';const S=`[data-theme=${t.id}]`,glow=p.bo==='glow',L=TLIGHT.has(t.id);
+  // яркий фон: два больших цветных пятна и цветной градиент вместо почти чёрного; светлые пастельные темы — свой набор цветов
+  const bgi=`${p.pat?p.pat+',':''}${tBg(t)}`;
+  const base=`${S}{--r:${p.r[0]}px;--rs:${p.r[1]}px;--line:${tMix(t.a,p.bo==='bold'?48:glow?30:L?26:16)};--bgimg:${bgi}${p.font?`;--font:${p.font}`:''};`+(L
+    ?`--bg:${tPastel(t)};--panel:rgba(255,255,255,.7);--panel2:${tMix(t.a,18)};--soft:rgba(0,0,0,.04);--soft2:rgba(0,0,0,.08);--text:#1d1822;--mut:#6d6474;--acc:color-mix(in srgb,${t.a} 78%,#000);--acc2:color-mix(in srgb,${t.b} 70%,#000);--warm:#c2410c;--red:#e11d48;--green:#059669;--grad:linear-gradient(135deg,color-mix(in srgb,${t.a} 85%,#000),color-mix(in srgb,${t.b} 80%,#000));--glow:0 6px 18px ${tMix(t.a,30)};--dlg:#ffffff;--input:rgba(255,255,255,.85);--we:#e11d48;--dOff:#2563eb;--dHol:#e11d48;--dVac:#059669;--dNight:#7c3aed}`
+    :`--panel:color-mix(in srgb,${t.a} ${p.ti}%,rgba(255,255,255,.035));--dlg:color-mix(in srgb,${t.a} 10%,${t.bg})}`);
+  return base
+   +(L?`${S} input,${S} select{color-scheme:light}${S} .cta,${S} .pill.on{color:#fff}${S} .chip{filter:brightness(.62) saturate(1.4)}${S} .glass{box-shadow:0 8px 26px ${tMix(t.a,16)}}${S} .brand .wm b em{color:var(--acc)!important;filter:none}`:'')
+   // время и название месяца — цветным градиентом темы
+   +`${S} .clock .t,${S} .mhead h2{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}`
    +(glow?`${S} .glass{box-shadow:0 0 0 1px ${tMix(t.a,20)},0 0 26px ${tMix(t.a,22)}}`:'')+(p.bo==='bold'?`${S} .glass{border-width:1.5px}`:'')}).join('\n');
   const st=document.createElement('style');st.id='thx';st.textContent=css;document.head.append(st)}
 $('#themes').innerHTML=THEMES.map(t=>{const p=tPers(t),r=p?p.r:[t.id==='hud'?4:12,8],f=p&&p.font?`font-family:${p.font.replace(/"/g,"'")};`:'';
-  return `<button data-th="${t.id}"><div style="background:${p&&p.pat?p.pat+',':''}${t.bg}"><i style="top:12px;background:linear-gradient(90deg,${t.a},${t.b});border-radius:${r[1]}px"></i><b class="tpv" style="border-radius:${r[0]}px;border-color:${t.a};${/^#[ef]/i.test(t.bg)?'color:#111;':''}${f}${p&&p.bo==='glow'?`box-shadow:0 0 12px ${tMix(t.a,55)};`:''}background:${p?`color-mix(in srgb,${t.a} ${p.ti+6}%,${t.bg})`:t.bg}">Aa</b><i style="top:30px;left:52px;right:30%;background:${t.a};border-radius:${r[1]}px"></i><i style="top:46px;left:52px;right:44%;background:${t.b};opacity:.6;border-radius:${r[1]}px"></i></div><span style="${f}">${t.name}</span></button>`}).join('');
+  return `<button data-th="${t.id}"><div style="background:${p?(p.pat?p.pat+',':'')+tBg(t)+','+(TLIGHT.has(t.id)?tPastel(t):t.bg):t.bg}"><i style="top:12px;background:linear-gradient(90deg,${t.a},${t.b});border-radius:${r[1]}px"></i><b class="tpv" style="border-radius:${r[0]}px;border-color:${t.a};${/^#[ef]/i.test(t.bg)||TLIGHT.has(t.id)?'color:#1d1822;':''}${f}${p&&p.bo==='glow'?`box-shadow:0 0 12px ${tMix(t.a,55)};`:''}background:${p?`color-mix(in srgb,${t.a} ${p.ti+6}%,${TLIGHT.has(t.id)?'#fff':t.bg})`:t.bg}">Aa</b><i style="top:30px;left:52px;right:30%;background:${t.a};border-radius:${r[1]}px"></i><i style="top:46px;left:52px;right:44%;background:${t.b};opacity:.6;border-radius:${r[1]}px"></i></div><span style="${f}">${t.name}</span></button>`}).join('');
 $('#themes').onclick=e=>{const b=e.target.closest('[data-th]');if(b)applyTheme(b.dataset.th)};
 $('#themeBtn').onclick=()=>{const i=THEMES.findIndex(t=>t.id===(settings.theme||'hud'));const t=THEMES[(i+1)%THEMES.length];applyTheme(t.id);toast(T('Стиль: ')+t.name)};
 applyTheme(settings.theme||'hud');

@@ -1176,6 +1176,9 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
+/* открыто окно — страница сзади не прокручивается (на телефоне прокрутка «проваливалась» под окно заметки) */
+html:has(dialog[open]),body:has(dialog[open]){overflow:hidden!important;overscroll-behavior:none}
+dialog,dialog .mde,dialog textarea,dialog [contenteditable],dialog ul,dialog .mlist{overscroll-behavior:contain}
 .themes button div .tpv{position:absolute;left:10px;top:28px;width:34px;height:26px;display:grid;place-items:center;font:700 13px/1 inherit;color:#fff;border:1.5px solid;box-sizing:border-box}
 @media(max-width:700px){.themes button div .tpv{top:15px!important;left:6px;width:26px;height:20px;font-size:10px}.themes button div i:not(:first-child){left:38px!important}}
 @media(max-width:760px){.pv{padding:14px 12px}.pvg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pvc{border-radius:14px}.pvc .ph{font-size:40px}.pvc .cdb{left:6px;right:6px;bottom:6px;padding:4px 6px;border-radius:9px;font-size:11px}.pvc .bd{padding:8px 9px 10px;gap:4px}.pvc .bd b{font-size:13px}.pvc .bd small{font-size:11px}.pvc .ac{gap:4px}.pvc .ac a,.pvc .ac button{padding:6px 4px;font-size:11.5px}.pvc .ac .unp{flex:1 1 0;min-width:0}
@@ -1861,7 +1864,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.20',APP_DATE='10.11.2026';
+const APP_VER='3.21',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -3615,6 +3618,7 @@ function resetEmo(form){const full=form.querySelector('.emofull');full.hidden=tr
 
 // ---- разделы ----
 function showView(v){
+  try{localStorage.setItem('cal.lastView',JSON.stringify({v,t:Date.now()}))}catch(e){} // после перезагрузки вернуться сюда, а не в календарь
   if(multi&&v!=='cal')endMulti();
   $$('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
@@ -4057,8 +4061,10 @@ function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.fi
   if(Object.keys(x).length&&mergeExtra(x))ex=true;
   if(dedupeNotes()|dedupeMemos())ch=true;
   if(ch){save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
-  if(ex){const busy=/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
-document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend){allPend=false;location.reload()}});
+  if(ex){const busy=botBusy>0||/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend&&!botBusy&&!document.querySelector('dialog[open]')){allPend=false;location.reload()}});
+// после перезагрузки (синхронизация, Android выгрузил программу) — открыть тот раздел, где был человек, если прошло меньше 30 минут
+addEventListener('load',()=>{try{const x=JSON.parse(localStorage.getItem('cal.lastView')||'null');if(x&&x.v!=='cal'&&Date.now()-x.t<18e5&&document.getElementById('v-'+x.v)&&!location.hash)showView(x.v)}catch(e){}});
 setInterval(()=>allPush(),20000);
 $('#linkNow').onclick=()=>syncNowAll();
 addEventListener('load',()=>setTimeout(()=>{if(link)allReq()},4000)); // при запуске — попросить свежее у другого устройства
@@ -4877,7 +4883,8 @@ async function botSend(text){
     return botCard({title:(nm2.length>=3?nm2:slug).slice(0,100),ep:'',se:'',date:r0&&r0.kind==='rem'?r0.items[0].date:'',time:r0&&r0.kind==='rem'?r0.items[0].time:'',url:u,text:'',amount:0},'')}
   {const tn=voiceNorm(text);if(botCmd(tn))return;const r=botParse(tn);if(r)return botReply(r)}
   botReply(null)}
-async function botImage(f){
+async function botImage(f){botBusy++;try{return await botImage0(f)}finally{botBusy--}}
+async function botImage0(f){
   if(!f||!/^image\//.test(f.type))return;if(f.size>15e6)return toast(T('⚠ Файл слишком большой'));
   // уменьшаем до 1600 px — быстрее и дешевле
   const url=URL.createObjectURL(f),img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url});
@@ -4905,25 +4912,73 @@ async function noteText(c,o){
   const rows=(o.rows||[]).filter(r=>r.y>o.H*.045).sort((a,b)=>a.y-b.y),cyr=(o.text.match(/[\p{Script=Cyrillic}]/gu)||[]).length,lat=(o.text.match(/[A-Za-z]/g)||[]).length,ruDoc=cyr>lat*1.5&&cyr>20;
   let budget=40;const W2=c=>c&&/^[\p{L}]/u.test(c);
   for(const r of rows){if(!r.w)continue;
+    const rc=(r.t.match(/[\p{Script=Cyrillic}]/gu)||[]).length,rl=(r.t.match(/[A-Za-z]/g)||[]).length,cyrRow=rc>=rl*2&&rc>=6;
+    // строка почти вся латиница среди русского текста и неуверенная — это обрезанный краем скриншота мусор
+    if(ruDoc&&rl>rc*1.5&&rl>=6&&r.w.reduce((a,w)=>a+w.c,0)/r.w.length<80&&!/[@\/]|\.[a-z]{2,}|\d{3,}/.test(r.t)){r.w.forEach(w=>w.t='');r.t='';continue}
     for(const w of r.w){let t=w.t;
       // мусор вместо эмодзи и значков: 1–2 знака, совсем низкая уверенность
       // мусор вместо эмодзи в конце строки: 1–2 заглавные буквы после обычного слова
       {const last=w===r.w[r.w.length-1]&&r.w.length>1,prev=last?r.w[r.w.length-2].t:'';if(last&&w.c<75&&/^[\p{Lu}]{1,2}$/u.test(t)&&/[\p{Ll}][,.!?]?$/u.test(prev)){w.t='';continue}}
       if(ruDoc){const hasC=/[\p{Script=Cyrillic}]/u.test(t),hasL=/[A-Za-z]/.test(t),tech=/[@\/:]|\.[a-z]{2,}|\d/.test(t);
         if(hasC&&hasL&&!tech)t=t.replace(/[A-Za-z]/g,ch=>LAT2CYR[ch]||ch); // смешанное слово — латинские двойники в кириллицу
-        else if(budget>0&&!tech&&(hasL&&!hasC&&w.c<80||w.c<62)&&t.replace(/[^\p{L}]/gu,'').length>=2){budget--;
+        else if(budget>0&&!tech&&(hasL&&!hasC&&(w.c<80||cyrRow)||w.c<62)&&t.replace(/[^\p{L}]/gu,'').length>=2){budget--;
           try{const R=await (await ocrCyr()).recognize(ocrCrop(c,w,.18)),nt=(R.data.text||'').trim().replace(/\s+/g,' '),nc=R.data.confidence||0;
-            if(nt&&/[\p{Script=Cyrillic}]/u.test(nt)&&nc>=w.c+8&&nt.length<=t.length*1.6+2&&nt.length>=t.length*.5)t=nt}catch(e){}}}
+            if(nt&&/[\p{Script=Cyrillic}]/u.test(nt)&&(nc>=w.c+8||cyrRow&&hasL&&!hasC&&nc>=70)&&nt.length<=t.length*1.6+2&&nt.length>=t.length*.5)t=nt}catch(e){}}}
+      if(ruDoc&&/^[Йй][.,!?]?$/.test(t))t=t.replace('Й','И').replace('й','и'); // «Й» отдельным словом не бывает — это «И»
       w.t=t}
     r.t=r.w.map(w=>w.t).filter(Boolean).join(' ')}
+  return noteLayout(rows,o,c)}
+// раскладка по экрану: значки слева от колонки текста (ручки ⠿, квадратики списка) — не текст; пункт списка начинается со значка,
+// продолжение пункта (перенос строки) приклеивается к нему; панели сверху/снизу и обрезанные края строк — отбрасываются
+const NEWITEM_RX=/^\s*\+?\s*(новый пункт|новий пункт|list item|new item|položka seznamu|listenelement)\s*$/i; /*i18n:keep*/
+function noteLayout(rows,o,c){
+  const real=w=>w&&w.t&&(w.t.match(/[\p{L}\d]/gu)||[]).length>=3&&w.c>=55;
+  const R=rows.filter(r=>r.w&&r.w.some(w=>w.t)).map(r=>{const ws=r.w.filter(w=>w.t),h=ws.map(w=>w.y1-w.y0).sort((a,b)=>a-b)[ws.length>>1]||20,fi=ws.findIndex(real);return{ws,h,fi,y:r.y,conf:ws.reduce((a,w)=>a+w.c,0)/ws.length}});
+  // колонка текста: самый левый край, с которого начинаются хотя бы 2 строки
+  const xs=R.filter(r=>r.fi>=0).map(r=>r.ws[r.fi].x0).sort((a,b)=>a-b);let colX=xs[0]||0;
+  for(const x of xs){const tol=(R[0]?R[0].h:20)*.7;if(xs.filter(v=>Math.abs(v-x)<=tol).length>=2){colX=x;break}}
+  const lines=[];
+  for(const r of R){
+    // значки слева: перед первым настоящим словом — промежуток намного больше пробела (квадратик/ручка и текст), а короткие слова «Не», «В» стоят через обычный пробел
+    const lead=r.fi>0?r.ws.slice(0,r.fi):[],gap=lead.length?r.ws[r.fi].x0-lead[lead.length-1].x1:0,junk=lead.every(w=>!/[\p{L}]{3,}/u.test(w.t)),icon=r.fi>0&&junk&&gap>r.h*.75;
+    let ws=icon?r.ws.slice(r.fi):r.ws;
+    const t=ws.map(w=>w.t).join(' ').replace(/\s+/g,' ').trim();
+    const edge=r.y<o.H*.1||r.y>o.H*.86;
+    if(!t||!/[\p{L}\d]{2,}/u.test(t))continue;
+    if(edge&&r.fi<0)continue;                      // панели с кнопками сверху и снизу
+    if(r.conf<52&&r.fi<0)continue;                  // строка обрезана краем скриншота
+    if(NEWITEM_RX.test(t))continue;
+    lines.push({t,item:!!icon,x:ws[0].x0,h:r.h})}
+  const starts=lines.filter(l=>l.item).length,list=starts>=3&&starts>=lines.length*.25;
+  const ukr=/[іїєґІЇЄҐ]/.test(lines.map(l=>l.t).join(' '));if(ukr)lines.forEach(l=>{l.t=l.t.replace(/(?<=[\p{Script=Cyrillic}]{2})!(?=[\s,.]|$)/gu,'і')}); // украинская «і» в конце слова прочитана как «!»
+  if(!list)return{text:lines.map(l=>l.t).join('\n').replace(/\n{3,}/g,'\n\n').trim().replace(/(\d)\s*(?:К[СсбЕе6]|K[cCeE]|Кč)(?=[\s.,;!?)]|$)/gu,'$1 Kč').replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый'),items:null};
+  // список: строки до первого значка — хвост пункта с прошлого скриншота (помечаем, при склейке уберётся)
+  const items=[];let head=[];
+  for(const l of lines){if(l.item)items.push(l.t);else if(items.length){const p=items[items.length-1];items[items.length-1]=/-$/.test(p)?p.slice(0,-1)+l.t:p+' '+l.t}else head.push(l.t)}
+  return{text:items.join('\n'),items:items.map(x=>x.replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый')),head:head.join(' ')}}
+// склейка скриншотов с перекрытием: конец предыдущего = начало следующего — повтор не добавляем
+function mergeSeq(A,B){const nz=s=>String(s).toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\d]+/gu,''),
+  lv=(a,b)=>{const m=a.length,n=b.length;if(!m||!n)return Math.max(m,n);let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]},
+  sim=(a,b)=>{a=nz(a);b=nz(b);return a===b||a.length>=4&&(b.startsWith(a)||a.startsWith(b))||1-lv(a,b)/Math.max(a.length,b.length,1)>=.8};
+  for(let k=Math.min(A.length,B.length);k>=1;k--){let ok=true;for(let i=0;i<k&&ok;i++)ok=sim(A[A.length-k+i],B[i]);
+    if(ok){const mid=[];for(let i=0;i<k;i++){const a=A[A.length-k+i],b=B[i];mid.push(nz(b).length>=nz(a).length?b:a)}return A.slice(0,A.length-k).concat(mid,B.slice(k))}}
+  return A.concat(B)}
+function noteTextOld(rows,o){
   return rows.filter(r=>/[\p{L}\d]{2,}/u.test(r.t)).map(r=>r.t.trim()).join('\n')
-    .replace(/(\d)\s*(?:К[СсбЕе6]|K[cCeE]|Кč)(?=[\s.,;!?)]|$)/gu,'$1 Kč') // чешские кроны
+    .replace(/(\d)\s*(?:К[СсбЕе6]|K[cCeE]|Кč)(?=[\s.,;!?)]|$)/gu,'$1 Kč') // чешские кроны (старый путь)
     .replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый') // «ы» прочитано как «ь»
     .replace(/(?<=[\p{Script=Cyrillic}]{2})!(?=[\s,.]|$)/gu,m=>/[іїєґІЇЄҐ]/.test(o.text+rows.map(r=>r.t).join(' '))?'і':m) // украинская «і» в конце слова прочитана как «!»
     .replace(/\n{3,}/g,'\n\n').trim()}
-async function ocrNoteText(c){return noteText(c,await ocrRead(c))}
+async function ocrNoteText(c){const r=await noteText(c,await ocrRead(c));return r.text}
 function shotText(o){const R=(o.rows&&o.rows.length?o.rows.map(r=>({t:r.t,y0:r.y})):o.lines).slice().sort((a,b)=>a.y0-b.y0);return R.filter(l=>l.y0>o.H*.045&&/[\p{L}\d]{2,}/u.test(l.t)).map(l=>l.t.trim()).join('\n').replace(/\n{3,}/g,'\n\n').trim()}
-function botTextNote(txt){txt=String(txt||'').trim().slice(0,20000);if(!txt)return botSay(esc(T('На фото не нашлось текста')));
+function botTextNote(txt){
+  // список с галочками (скриншот Google Keep и т. п.) — заметка-список
+  if(txt&&typeof txt==='object'&&Array.isArray(txt.items)){const it=txt.items.map(x=>String(x).trim()).filter(Boolean).slice(0,300);if(!it.length)return botSay(esc(T('На фото не нашлось текста')));
+    const m=cleanMemo({id:newId(),title:'',text:'',items:it.map(t=>({t:t.slice(0,500),d:false})),color:COLORS[1],pin:false,upd:Date.now()});memos.unshift(m);saveMemos();try{renderMemos()}catch(e){}
+    const und=()=>{memos=memos.filter(x=>x.id!==m.id);saveMemos();try{renderMemos()}catch(e){}};botUndo.push({t:it[0],undo:und});
+    return botSay(esc(T`📝 Записал список с фото в заметки: ${it.length} ${plural(it.length,T('пункт'),T('пункта'),T('пунктов'))}`)+'\n'+esc(it.slice(0,6).map(x=>'☐ '+x).join('\n')+(it.length>6?'\n…':'')),false,[[T('Открыть'),()=>showView('notes')],[T('🗑 Удалить заметку'),()=>{und();botSay(esc(T('Отменено — заметка удалена')))}]])}
+  if(txt&&typeof txt==='object')txt=txt.text;
+  txt=String(txt||'').trim().slice(0,20000);if(!txt)return botSay(esc(T('На фото не нашлось текста')));
   const L=txt.split('\n'),m=cleanMemo({id:newId(),title:L.length>2?L[0].slice(0,120):'',text:(L.length>2?L.slice(1):L).join('\n'),color:COLORS[1],pin:false,upd:Date.now()});memos.unshift(m);saveMemos();try{renderMemos()}catch(e){}
   const und=()=>{memos=memos.filter(x=>x.id!==m.id);saveMemos();try{renderMemos()}catch(e){}};botUndo.push({t:L[0],undo:und});
   botSay(esc(T`📝 Записал текст с фото в заметки (${L.length} ${plural(L.length,T('строка'),T('строки'),T('строк'))}):`)+'\n'+esc(txt.slice(0,280)+(txt.length>280?'…':'')),false,[[T('Открыть'),()=>showView('notes')],[T('🗑 Удалить заметку'),()=>{memos=memos.filter(x=>x.id!==m.id);saveMemos();try{renderMemos()}catch(e){}botSay(esc(T('Отменено — заметка удалена')))}]])}
@@ -4955,7 +5010,10 @@ function trayAdd(fs){for(const f of [...fs])if(f&&/^image\//.test(f.type)&&botPe
 function trayPaint(){const t=$('#botTray');t.hidden=!botPend.length;
   t.innerHTML=botPend.map((x,i)=>`<span class="bti"><img src="${x.u}" alt=""><button type="button" data-tx="${i}" title="${T('Убрать')}">✕</button></span>`).join('')+(botPend.length?`<small>${esc(botPend.length>1?T`${botPend.length} скриншота — бот соберёт их в одну запись. Можно добавить ещё (Ctrl+V) и нажать ➤`:T('Можно добавить ещё скриншот (Ctrl+V) — например, с таймером. Потом нажмите ➤'))}</small>`:'')}
 $('#botTray').onclick=e=>{const b=e.target.closest('[data-tx]');if(!b)return;const x=botPend.splice(+b.dataset.tx,1)[0];if(x)URL.revokeObjectURL(x.u);trayPaint()};
-async function traySend(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.revokeObjectURL(x.u));botPend=[];trayPaint();botLast=null;
+// пока бот читает фото — программу не перезагружать (синхронизация подождёт), иначе выкидывало в календарь
+let botBusy=0;
+async function traySend(){botBusy++;try{return await traySend0()}finally{botBusy--}}
+async function traySend0(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.revokeObjectURL(x.u));botPend=[];trayPaint();botLast=null;
   if(fs.length<2){if(fs[0])await botImage(fs[0]);return}
   const cs=[];for(const f of fs){const c=await botCanvas(f);if(c)cs.push(c)}
   botSay(cs.map(c=>`<img src="${c.toDataURL('image/jpeg',.7)}" alt="" style="max-width:${Math.floor(96/cs.length)}%;margin:2px">`).join(''),true);
@@ -4963,7 +5021,10 @@ async function traySend(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.re
   if(!R.length)return botSay(esc(to?T('⚠ Фото читались слишком долго — попробуйте отправить по одному.'):T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));
   if(to)botSay(esc(T`⚠ Не удалось прочитать фото: ${to}`));
   // скриншоты с текстом — одной заметкой по порядку
-  {const tx=R.filter(r=>r.txt);if(tx.length&&tx.length*2>=R.length){botTextNote(tx.map(r=>r.txt).join('\n\n'));R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}
+  {const tx=R.filter(r=>r.txt);if(tx.length&&tx.length*2>=R.length){
+    const T2=tx.map(r=>typeof r.txt==='string'?{text:r.txt,items:null}:r.txt);
+    if(T2.every(x=>x.items)){let L=T2[0].items;for(const x of T2.slice(1))L=mergeSeq(L,x.items);botTextNote({items:L})}
+    else{let L=T2[0].text.split('\n');for(const x of T2.slice(1))L=mergeSeq(L,x.text.split('\n'));botTextNote(L.join('\n'))}R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}
   const movie=R.filter(r=>!(r.ml.length>=2&&!/(выход|серии|серия|сезон|episode|премьер)/i.test(r.o.text)));R.filter(r=>!movie.includes(r)).forEach(r=>botMoneyCard(r.ml));if(!movie.length)return;
   const tsel=movie.filter(r=>r.a.title).sort((x,y)=>y.a.tscore*(y.a.url?1.5:1)*(y.thumb?1.2:1)-x.a.tscore*(x.a.url?1.5:1)*(x.thumb?1.2:1))[0],
     dsel=movie.filter(r=>r.a.date).sort((x,y)=>(y.a.dw>=0)-(x.a.dw>=0)||(y.a.time?1:0)-(x.a.time?1:0))[0],usel=movie.find(r=>r.a.url),base=tsel||dsel||movie[0];

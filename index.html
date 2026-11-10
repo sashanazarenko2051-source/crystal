@@ -1872,7 +1872,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.24',APP_DATE='10.11.2026';
+const APP_VER='3.25',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -1964,7 +1964,7 @@ function dedupeNotes(){const seen=new Set(),wk=new Map(),out=[];let rm=0;for(con
     for(const g in G){const L=G[g];if(L.length<2)continue;const cnt={};L.forEach(i=>{const k=out[i].start+'-'+out[i].end;cnt[k]=(cnt[k]||0)+1});
       const iv=i=>{const s=tm(out[i].start);let e=tm(out[i].end);if(e<=s)e+=1440;return[s,e]},keep=[];
       for(const i of [...L].sort((a,b)=>cnt[out[b].start+'-'+out[b].end]-cnt[out[a].start+'-'+out[a].end]||a-b)){const[s,e]=iv(i);
-        const dup=keep.find(j=>{const[s2,e2]=iv(j),ov=Math.min(e,e2)-Math.max(s,s2);return ov>0&&ov>=.8*Math.min(e-s,e2-s2)});
+        const dup=keep.find(j=>{const[s2,e2]=iv(j),ov=Math.min(e,e2)-Math.max(s,s2);return ov>0&&ov>=.8*Math.max(e-s,e2-s2)}); // почти одинаковые по длине (короткая запись внутри длинной смены — не дубль)
         if(dup!=null){const o=out[dup],n=out[i];if(!o.text&&n.text)o.text=n.text;if(!o.pay&&n.pay){o.pay=n.pay;o.payM=n.payM}drop.add(i);rm++}else keep.push(i)}}
     if(drop.size){const o2=out.filter((_,i)=>!drop.has(i));out.length=0;out.push(...o2)}}
   // слои дня: одно и то же расписание дня, заданное в разное время (часто на двух устройствах и потом синхронизированное), складывалось — 30 ч вместо 10.
@@ -1976,7 +1976,10 @@ function dedupeNotes(){const seen=new Set(),wk=new Map(),out=[];let rm=0;for(con
     const inter=(A,B)=>{let t=0;for(const[s,e]of A)for(const[s2,e2]of B){const o=Math.min(e,e2)-Math.max(s,s2);if(o>0)t+=o}return t};
     for(const d in G){const L=G[d].sort((a,b)=>ts(out[a])-ts(out[b]));if(L.length<2)continue;const B=[];let cur=[L[0]];
       for(let j=1;j<L.length;j++){if(ts(out[L[j]])-ts(out[L[j-1]])>5000){B.push(cur);cur=[]}cur.push(L[j])}B.push(cur);if(B.length<2)continue;
-      for(let b=0;b<B.length-1;b++){const old=ivs(B[b]),newer=ivs(B.slice(b+1).flat()),ol=len(old);if(!ol)continue;
+      // размер слоя — по исходным записям (до чистки дублей), иначе слой, частично совпавший с другим, «уменьшался» и не узнавался
+      const osz=Bx=>{const t0=Math.min(...Bx.map(i=>ts(out[i]))),t1=Math.max(...Bx.map(i=>ts(out[i])));return notes.filter(n=>n.type==='work'&&n.date===d&&ts(n)>=t0-5000&&ts(n)<=t1+5000).length};
+      for(let b=0;b<B.length-1;b++){if(osz(B[b])<3||osz(B.slice(b+1).flat())<3)continue; // слой = полное расписание дня (сон, работа, обед…), а не отдельная запись
+        const old=ivs(B[b]),newer=ivs(B.slice(b+1).flat()),ol=len(old);if(!ol)continue;
         // пересечение считаем по объединению новых, чтобы не завысить
         const nu=[];newer.sort((x,y)=>x[0]-y[0]).forEach(([s,e])=>{const l=nu[nu.length-1];if(l&&s<=l[1])l[1]=Math.max(l[1],e);else nu.push([s,e])});
         if(inter(old,nu)>=.5*ol){const keepTxt=B[b].map(i=>out[i]).filter(n=>n.text&&!String(n.text).startsWith('🍽'));B[b].forEach(i=>drop.add(i));rm+=B[b].length;
@@ -3996,9 +3999,11 @@ async function p2pJoin(v){
   catch(e){if(my!==relayOn)return;
     return yShow(T('Не получилось подключиться'),e.message==='expired'?T('Код устарел (действует 3 часа) — откройте на компьютере «📱 Добавить устройство» заново.'):T`Проверьте интернет на телефоне и попробуйте ещё раз. (${e.message})`,[{t:T('🔄 Попробовать ещё раз'),cta:1,on:()=>p2pJoin(v)},{t:T('Закрыть')}])}
   if(my!==relayOn)return;
-  if(/^crys-[a-z0-9]{24}$/.test(topic))linkSave(topic,k);
-  yShow(T('✓ Подключено к компьютеру'),T('Что сделать? Отправляйте записи только на свой компьютер — не сканируйте чужие коды.'),[
+  // ВАЖНО: сама ссылка ничего не отправляет и ничего не связывает — только по нажатию (иначе чужая ссылка забрала бы все записи)
+  const canLink=/^crys-[a-z0-9]{24}$/.test(topic);
+  yShow(T('💻 Код компьютера получен'),T('Что сделать? Отправляйте записи и связывайте только СВОЙ компьютер — если ссылку или код прислал кто-то другой, нажмите «Отмена».'),[
     {t:T('📥 Получить записи с ПК'),cta:1,on:()=>syncShow(d,false)},
+    ...(canLink?[{t:T('🔄 Связать устройства (синхронизация всегда)'),on:()=>yShow(T('Связать с этим компьютером?'),T('Все ваши записи — календарь, заметки, цикл и здоровье, доходы и расходы — будут постоянно передаваться на этот компьютер (зашифрованно). Делайте это только со своим компьютером.'),[{t:T('🔄 Да, это мой компьютер'),cta:1,on:()=>{linkSave(topic,k);toast(T('🔄 Устройства связаны'))}},{t:T('Отмена')}])}]:[]),
     {t:T('📤 Отправить мои записи на ПК'),on:async()=>{yShow(T('⏳ Отправляю…'),'',[]);
       try{await relayPut(topic,await enc(await packAll(),raw),'phone');yShow(T('✓ Отправлено на компьютер'),T('Подтвердите загрузку на компьютере — там должно быть открыто окно с QR-кодом.'),[{t:T('Готово'),cta:1}])}
       catch(e){yShow(T('Не получилось отправить'),navigator.onLine?T('Сервер связи сейчас занят или нет интернета — попробуйте через минуту.'):T('Проверьте интернет и попробуйте ещё раз.'),[{t:T('Закрыть')}])}}},
@@ -4900,7 +4905,9 @@ function botCmd(text){const low=' '+text.toLowerCase().replace(/ё/g,'е')+' ',n
   // помощь
   if(/^\s*(что ты умеешь|что умеешь|помощь|помоги|справка|команды|help|\?)\s*$/iu.test(text.trim())){botHelp();return true} /*i18n:keep*/
   // удаление
-  {const dm=text.trim().match(/^(?:удали|удалить|сотри|стереть|убери|убрать|отмени)\s*(.*)$/iu);if(dm){botDelete(dm[1]);return true}} /*i18n:keep*/
+  // только повелительное «удали / сотри / убери / отмени» (или «удалить последнюю запись») и без даты/времени — иначе это напоминание «удалить фото завтра»
+  {const tt=text.trim(),dm=tt.match(/^(?:удали|сотри|убери|отмени)(?![\p{L}])\s*(.*)$/iu)||tt.match(/^(?:удалить|отменить)\s+(последн\S*(?:\s+запис\S*)?)$/iu),when=/(сегодня|завтра|послезавтра|понедельник|вторник|сред[уаы]|четверг|пятниц|суббот|воскресень|через\s|(?<![\p{L}])в\s+\d|\d{1,2}[:.]\d{2}|\d{1,2}\s+(январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр))/iu.test(tt);
+    if(dm&&!when){botDelete(dm[1]||'');return true}} /*i18n:keep*/
   // разделы
   const views={'календар':'cal','заметк':'notes','для себя':'cyc','цикл':'cyc','деньг':'money','расход':'money','отчет':'rep','статистик':'rep','настройк':'set','закреплен':'pins','фильм':'pins'};
   if(/^\s*(открой|покажи|перейди)/.test(low)){for(const k in views)if(low.includes(k)){showView(views[k]);return true}}

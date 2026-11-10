@@ -1176,6 +1176,12 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
+/* прозрачные панели (Настройки → Стиль → «Прозрачность панелей») */
+html.see .glass{background:color-mix(in srgb,var(--bg) var(--seeMix,60%),transparent)!important;backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important;-webkit-backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important}
+html.see .day:not(.w):not(.dct):not(.wc){background:color-mix(in srgb,var(--soft) var(--seeDay,60%),transparent)}
+html.see #bg{display:block!important}
+html.see .tabbar,html.see .toast{background:var(--dlg)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important}
+.sglass span small{display:block;color:var(--mut);font-size:12px;font-weight:400}.sglass input[type=range]{width:min(220px,45%);accent-color:var(--acc)}
 /* открыто окно — страница сзади не прокручивается (на телефоне прокрутка «проваливалась» под окно заметки) */
 html:has(dialog[open]),body:has(dialog[open]){overflow:hidden!important;overscroll-behavior:none}
 dialog,dialog .mde,dialog textarea,dialog [contenteditable],dialog ul,dialog .mlist{overscroll-behavior:contain}
@@ -1578,6 +1584,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
           <div class="themes" id="themes"></div>
           <div class="sw"><span>Живой фон</span><input type="checkbox" class="tog" id="fxIn"></div>
           <div class="sw"><span>Эффект фона</span><select id="fxModeIn"></select></div>
+          <div class="sw sglass"><span>Прозрачность панелей<small id="glassV">выкл.</small></span><input type="range" id="glassIn" min="0" max="90" step="5" aria-label="Прозрачность панелей"></div>
         </div>
         </div>
         <div class="scols">
@@ -1864,7 +1871,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.21',APP_DATE='10.11.2026';
+const APP_VER='3.22',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -1991,7 +1998,7 @@ notes=notes.filter((n,i,a)=>n.type!=='work'||a.findIndex(x=>x.type==='work'&&x.d
   });
   if(mg)save('cal.notes',notes);}
 let settings=(()=>{
-  const x=load('cal.settings',{})||{},o={sound:x.sound!==false,fx:x.fx!==false,v:x.v};
+  const x=load('cal.settings',{})||{},o={sound:x.sound!==false,fx:x.fx!==false,glass:Math.max(0,Math.min(90,Math.round(+x.glass||0))),v:x.v};
   o.norm=num(x.norm,.5,24,8);o.sleep=num(x.sleep,0,16,8);o.rate=num(x.rate,0,1e6,0);
   o.cur=['Kč','€','$','₴','₽','zł'].includes(x.cur)?x.cur:'Kč';
   o.theme=typeof x.theme==='string'&&/^\w+$/.test(x.theme)?x.theme:'hud';
@@ -3538,6 +3545,11 @@ $('#vacIn').value=settings.vacPay||'';$('#vacIn').onchange=e=>{settings.vacPay=M
 $('#rateIn').onchange=e=>{settings.rate=Math.max(0,+e.target.value||0);save('cal.settings',settings)};
 $('#curIn').onchange=e=>{settings.cur=e.target.value;save('cal.settings',settings)};
 $('#fxIn').onchange=e=>{settings.fx=e.target.checked;if(settings.fx)fx.unlite();save('cal.settings',settings);fx.reset()};
+// прозрачность панелей: сквозь окна видно живой фон; чем прозрачнее — тем слабее размытие
+function applyGlass(){const v=+settings.glass||0,a=1-v/100,R=document.documentElement;R.classList.toggle('see',v>0);R.style.setProperty('--seeBlur',Math.round(16*a*a)+'px');R.style.setProperty('--seeMix',Math.round(88*a)+'%');R.style.setProperty('--seeDay',Math.round(100*a)+'%');const s=$('#glassV');if(s)s.textContent=v?v+'%':T('выкл.')}
+$('#glassIn').value=settings.glass||0;
+$('#glassIn').oninput=e=>{settings.glass=+e.target.value;applyGlass();if(settings.glass>0){try{fx.unlite()}catch(x){}if(!settings.fx){settings.fx=true;$('#fxIn').checked=true;try{fx.reset()}catch(x){}}}save('cal.settings',settings)};
+applyGlass();
 $('#fxModeIn').innerHTML=Object.entries(FXS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');$('#fxModeIn').value=FXS[settings.fxMode]?settings.fxMode:'auto';
 $('#fxModeIn').onchange=e=>{settings.fxMode=e.target.value;fx.unlite();if(!settings.fx){settings.fx=true;$('#fxIn').checked=true}save('cal.settings',settings);fx.reset()};
 $('#sound').checked=!!settings.sound;
@@ -3787,7 +3799,7 @@ const fx=(()=>{
   function frame(t){
     requestAnimationFrame(frame);
     if(!document.hidden&&prev&&t-prev<1000){slow=t-prev>70?slow+1:Math.max(0,slow-2);
-      if(slow>40&&!document.documentElement.classList.contains('lite')){document.documentElement.classList.add('lite');try{localStorage.setItem('cal.lite','1')}catch(e){}}}
+      if(slow>40&&!(settings.glass>0)&&!document.documentElement.classList.contains('lite')){document.documentElement.classList.add('lite');try{localStorage.setItem('cal.lite','1')}catch(e){}}}
     prev=t;
     if(!settings.fx||calm||document.hidden||t-last<(mode==='rain'||mode==='kanji'?60:33)||document.documentElement.classList.contains('lite')||document.querySelector('dialog[open]'))return;last=t;T+=.016;
     if(mode==='rain'||mode==='kanji'){
@@ -3881,7 +3893,7 @@ const fx=(()=>{
     }else if(GFX[mode]){gDraw(GFX[mode])}
     cx.globalAlpha=1;
   }
-  try{if(localStorage.getItem('cal.lite')==='1')document.documentElement.classList.add('lite')}catch(e){}
+  try{if(localStorage.getItem('cal.lite')==='1'&&!(settings.glass>0))document.documentElement.classList.add('lite')}catch(e){}
   addEventListener('resize',reset);reset();requestAnimationFrame(frame);
   function unlite(){slow=0;document.documentElement.classList.remove('lite');try{localStorage.removeItem('cal.lite')}catch(e){}}
   return{reset,unlite};

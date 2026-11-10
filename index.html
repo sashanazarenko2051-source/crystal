@@ -1176,6 +1176,7 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
+#yP{white-space:pre-line}
 /* прозрачные панели (Настройки → Стиль → «Прозрачность панелей») */
 html.see .glass{background:color-mix(in srgb,var(--bg) var(--seeMix,60%),transparent)!important;backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important;-webkit-backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important}
 html.see .day:not(.w):not(.dct):not(.wc){background:color-mix(in srgb,var(--soft) var(--seeDay,60%),transparent)}
@@ -1871,7 +1872,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.23',APP_DATE='10.11.2026';
+const APP_VER='3.24',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4233,17 +4234,26 @@ function pinPickList(){const q=$('#ppQ').value.trim().toLowerCase(),now=new Date
 $('#ppQ').oninput=pinPickList;$('#ppClose').onclick=()=>$('#pindlg').close();
 $('#ppList').onclick=e=>{const b=e.target.closest('[data-pp]');if(!b)return;const n=notes.find(x=>x.id===b.dataset.pp);if(!n)return;n.pin=true;n.pk=pinPk;persist();pinsRender();pinPickList();toast(T`📌 Закреплено: ${n.name}`,()=>{n.pin=false;delete n.pk;persist();pinsRender();if($('#pindlg').open)pinPickList()})};
 // ---- перенос заметок: «Поделиться → Gemday» на телефоне; на ПК — файлы .txt и Google Keep (Takeout, .json) ----
-function memoFromText(title,text){const L=String(text||'').replace(/\r/g,'').split('\n'),cb=L.filter(x=>/^\s*(\[[ xX]\]|☐|☑|✓|✔|-\s\[[ xX]\])/.test(x));
-  if(cb.length>=2&&cb.length>=L.filter(x=>x.trim()).length*.6)return cleanMemo({id:newId(),title:str(title,120),text:'',items:cb.map(x=>({t:x.replace(/^\s*(-\s)?(\[[ xX]\]|☐|☑|✓|✔)\s*/,''),d:/\[[xX]\]|☑|✓|✔/.test(x)})),color:COLORS[1],pin:false,upd:Date.now()});
+function memoFromText(title,text){let L=String(text||'').replace(/\r/g,'').split('\n');
+  // заголовок из «Поделиться» часто повторяется первой строкой текста — не дублируем
+  if(title&&L.length&&L[0].trim()===String(title).trim())L=L.slice(1);text=L.join('\n');
+  const CB=/^\s*(-\s)?(\[[ xX]\]|☐|☑|☒|□|▢|■|⬜|✅|✓|✔)\s*/,cb=L.filter(x=>CB.test(x));
+  if(cb.length>=2&&cb.length>=L.filter(x=>x.trim()).length*.6)return cleanMemo({id:newId(),title:str(title,120),text:'',items:cb.map(x=>({t:x.replace(CB,''),d:/\[[xX]\]|☑|☒|■|✅|✓|✔/.test(x)})),color:COLORS[1],pin:false,upd:Date.now()});
   return cleanMemo({id:newId(),title:str(title,120),text:str(text,20000),color:COLORS[1],pin:false,upd:Date.now()})}
 function memosImport(list){const add=list.filter(Boolean);if(!add.length)return toast(T('Не нашёл заметок в файлах'));memos.unshift(...add);saveMemos();renderMemos();toast(T`📥 Перенесено заметок: ${add.length}`)}
-window.gemdayCheckShare=()=>{try{if(!window.CrystalAndroid||!CrystalAndroid.getShared)return;const j=CrystalAndroid.getShared();if(!j)return;const o=JSON.parse(j);
+window.gemdayCheckShare=()=>{try{if(!window.CrystalAndroid)return;
+  // скриншоты через «Поделиться → Gemday»: сразу боту — он разберёт их в заметки (список, текст, несколько карточек)
+  if(CrystalAndroid.getSharedImages){const ji=CrystalAndroid.getSharedImages();if(ji){const L=JSON.parse(ji).filter(u=>typeof u==='string'&&/^data:image\/[a-z+.-]+;base64,/.test(u)).slice(0,6);
+    if(L.length&&isPro()){const fs=L.map((u,i)=>{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let k=0;k<b.length;k++)a[k]=b.charCodeAt(k);const t=u.slice(5,u.indexOf(';'));return new File([a],'shared'+i+'.'+(t.split('/')[1]||'png'),{type:t})});
+      showView('bot');trayAdd(fs);botSay(esc(T`📥 Получил скриншотов: ${fs.length} — читаю и записываю в заметки…`));setTimeout(()=>$('#botSend').click(),300);return}
+    if(L.length)return proShow()}}
+  if(!CrystalAndroid.getShared)return;const j=CrystalAndroid.getShared();if(!j)return;const o=JSON.parse(j);
   showView('notes');yShow(T('📥 Заметка из другого приложения'),String(o.text).slice(0,300),[{t:T('Сохранить в заметки'),cta:1,on:()=>memosImport([memoFromText(o.title,o.text)])},{t:T('Отмена')}])}catch(e){}};
 addEventListener('load',()=>setTimeout(gemdayCheckShare,400));document.addEventListener('visibilitychange',()=>{if(!document.hidden)gemdayCheckShare()});
 $('#mImport').onclick=()=>yShow(T('📥 Перенести заметки'),window.CrystalAndroid
-  ?T('Телефон не даёт программам читать чужие заметки, поэтому так: откройте заметку в Google Keep, Samsung Notes или другом приложении → «Поделиться» → Gemday. Она сразу появится здесь. Или загрузите файлы заметок (.txt / Google Keep .json).')
+  ?T('Телефон не даёт программам читать чужие заметки, поэтому так:\n\n1) Одна заметка: откройте её в Google Keep, Samsung Notes или другом приложении → «Поделиться» → Gemday — она сразу появится здесь (списки — с галочками).\n\n2) Много заметок сразу: сделайте скриншоты (главный экран Keep с карточками или открытую заметку) → в галерее выберите их → «Поделиться» → Gemday. Помощник прочитает и запишет каждую заметку отдельно.\n\n3) Файлы заметок: .txt или экспорт Google Keep (.json).')
   :T('Загрузите файлы заметок: .txt или экспорт Google Keep (takeout.google.com → Keep → файлы .json). Можно выбрать сразу много файлов.'),
-  [{t:T('📂 Выбрать файлы'),cta:1,on:()=>$('#mImpFile').click()},{t:T('Закрыть')}]);
+  [{t:T('📂 Выбрать файлы'),cta:1,on:()=>$('#mImpFile').click()},...(isPro()?[{t:T('📷 Со скриншотов'),on:()=>{showView('bot');$('#botFile').click()}}]:[]),{t:T('Закрыть')}]);
 $('#mImpFile').onchange=async e=>{const out=[];for(const f of [...e.target.files].slice(0,500)){if(f.size>2e6)continue;const t=await f.text();
   if(/\.json$/i.test(f.name)){try{const k=JSON.parse(t);if(k&&typeof k==='object'&&!k.isTrashed){
       out.push(Array.isArray(k.listContent)?cleanMemo({id:newId(out.length),title:str(k.title,120),text:'',items:k.listContent.map(x=>({t:str(x.text,500),d:!!x.isChecked})),color:COLORS[1],pin:!!k.isPinned,upd:Date.now()})
@@ -4953,11 +4963,23 @@ async function noteText(c,o){
       if(ruDoc&&/^[Йй][.,!?]?$/.test(t))t=t.replace('Й','И').replace('й','и'); // «Й» отдельным словом не бывает — это «И»
       w.t=t}
     r.t=r.w.map(w=>w.t).filter(Boolean).join(' ')}
+  // главный экран Keep и т. п.: карточки в две колонки — каждая карточка отдельной заметкой
+  {const g=gridSplit(rows,o);if(g){const cards=g.map(cr=>noteLayout(cr,o,c,true)).filter(x=>x&&(x.items&&x.items.length||x.text));if(cards.length>=2)return{cards,text:cards.map(x=>(x.title?x.title+'\n':'')+x.text).join('\n\n'),items:null}}}
   return noteLayout(rows,o,c)}
+// колонки: вертикальная полоса в середине, где нет ни одного слова; карточки: большой промежуток по высоте внутри колонки
+function gridSplit(rows,o){const W=o.W,H=o.H,ws=[];rows.forEach(r=>(r.w||[]).forEach(w=>{if(w.t&&r.y>H*.09&&r.y<H*.93)ws.push(w)}));if(ws.length<12)return null;
+  const N=200,cov=new Array(N).fill(0);ws.forEach(w=>{for(let i=Math.max(0,Math.floor(w.x0/W*N));i<=Math.min(N-1,Math.floor(w.x1/W*N));i++)cov[i]++});
+  let best=null;for(let i=Math.floor(N*.3);i<N*.7;i++){if(cov[i]===0){let j=i;while(j<N*.7&&cov[j]===0)j++;if(!best||j-i>best[1]-best[0])best=[i,j];i=j}}
+  if(!best||best[1]-best[0]<2)return null;const gx=(best[0]+best[1])/2/N*W,nl=ws.filter(w=>(w.x0+w.x1)/2<gx).length;if(nl<ws.length*.2||ws.length-nl<ws.length*.2)return null;
+  const cols=[[],[]];for(const r of rows){if(!r.w||r.y<H*.09||r.y>H*.93)continue;for(const[k,part]of[[0,r.w.filter(w=>w.t&&(w.x0+w.x1)/2<gx)],[1,r.w.filter(w=>w.t&&(w.x0+w.x1)/2>=gx)]])if(part.length)cols[k].push({y:Math.min(...part.map(w=>w.y0)),w:part,t:part.map(w=>w.t).join(' ')})}
+  const cards=[];for(const col of cols){if(!col.length)continue;col.sort((a,b)=>a.y-b.y);const st=[];for(let i=1;i<col.length;i++)st.push(col[i].y-col[i-1].y);const med=st.slice().sort((a,b)=>a-b)[st.length>>1]||40;let cur=[col[0]];
+    for(let i=1;i<col.length;i++){if(col[i].y-col[i-1].y>med*1.6){cards.push(cur);cur=[]}cur.push(col[i])}cards.push(cur)}
+  return cards}
+const MORE_RX=/^\s*(и\s+)?ещ[её]\s+\d+\s+(отмеч|пункт)|^\s*\+\s*\d+\s+(checked|more)|^\s*[.…]{1,3}\s*$/i; /*i18n:keep*/
 // раскладка по экрану: значки слева от колонки текста (ручки ⠿, квадратики списка) — не текст; пункт списка начинается со значка,
 // продолжение пункта (перенос строки) приклеивается к нему; панели сверху/снизу и обрезанные края строк — отбрасываются
 const NEWITEM_RX=/^\s*\+?\s*(новый пункт|новий пункт|list item|new item|položka seznamu|listenelement)\s*$/i; /*i18n:keep*/
-function noteLayout(rows,o,c){
+function noteLayout(rows,o,c,card){
   const real=w=>w&&w.t&&(w.t.match(/[\p{L}\d]/gu)||[]).length>=3&&w.c>=55;
   const R=rows.filter(r=>r.w&&r.w.some(w=>w.t)).map(r=>{const ws=r.w.filter(w=>w.t),h=ws.map(w=>w.y1-w.y0).sort((a,b)=>a-b)[ws.length>>1]||20,fi=ws.findIndex(real);return{ws,h,fi,y:r.y,conf:ws.reduce((a,w)=>a+w.c,0)/ws.length}});
   // колонка текста: самый левый край, с которого начинаются хотя бы 2 строки
@@ -4966,22 +4988,25 @@ function noteLayout(rows,o,c){
   const lines=[];
   for(const r of R){
     // значки слева: перед первым настоящим словом — промежуток намного больше пробела (квадратик/ручка и текст), а короткие слова «Не», «В» стоят через обычный пробел
-    const lead=r.fi>0?r.ws.slice(0,r.fi):[],gap=lead.length?r.ws[r.fi].x0-lead[lead.length-1].x1:0,junk=lead.every(w=>!/[\p{L}]{3,}/u.test(w.t)),icon=r.fi>0&&junk&&gap>r.h*.75;
-    let ws=icon?r.ws.slice(r.fi):r.ws;
+    const lead=r.fi>0?r.ws.slice(0,r.fi):[],gap=lead.length?r.ws[r.fi].x0-lead[lead.length-1].x1:0,junk=lead.every(w=>!/[\p{L}]{3,}/u.test(w.t)),
+      // квадратики стоят в одном столбике левее колонки текста (так бывает и при маленьком промежутке — карточки Keep)
+      inCol=lead.length&&R.filter(q=>q.fi>0&&q.fi<=2&&q.ws.slice(0,q.fi).every(w=>!/[\p{L}]{3,}/u.test(w.t))&&Math.abs(q.ws[0].x0-lead[0].x0)<r.h*.6).length>=2&&lead[0].x0<colX-r.h*.5&&gap>r.h*.38&&(card||!lead.some(w=>/^[\p{L}]{1,2}$/u.test(w.t)&&w.c>=80)), // уверенно прочитанное «В», «Не» — это слово, а не квадратик
+      icon=r.fi>0&&junk&&(gap>r.h*.75||inCol);
+    let ws=icon?r.ws.filter((w,i)=>i>=r.fi||w.x0>=colX-r.h*.3&&i>0):r.ws; // убираем только то, что левее колонки текста (квадратик), «5» в «5 000» остаётся
     const t=ws.map(w=>w.t).join(' ').replace(/\s+/g,' ').trim();
-    const edge=r.y<o.H*.1||r.y>o.H*.86;
+    const edge=!card&&(r.y<o.H*.1||r.y>o.H*.86);
     if(!t||!/[\p{L}\d]{2,}/u.test(t))continue;
     if(edge&&r.fi<0)continue;                      // панели с кнопками сверху и снизу
     if(r.conf<52&&r.fi<0)continue;                  // строка обрезана краем скриншота
-    if(NEWITEM_RX.test(t))continue;
+    if(NEWITEM_RX.test(t)||MORE_RX.test(t))continue;
     lines.push({t,item:!!icon,x:ws[0].x0,h:r.h})}
-  const starts=lines.filter(l=>l.item).length,list=starts>=3&&starts>=lines.length*.25;
+  const starts=lines.filter(l=>l.item).length,list=card?starts>=2&&starts>=lines.length*.4:starts>=3&&starts>=lines.length*.25;
   const ukr=/[іїєґІЇЄҐ]/.test(lines.map(l=>l.t).join(' '));if(ukr)lines.forEach(l=>{l.t=l.t.replace(/(?<=[\p{Script=Cyrillic}]{2})!(?=[\s,.]|$)/gu,'і')}); // украинская «і» в конце слова прочитана как «!»
   if(!list)return{text:lines.map(l=>l.t).join('\n').replace(/\n{3,}/g,'\n\n').trim().replace(/(\d)\s*(?:К[СсбЕе6]|K[cCeE]|Кč)(?=[\s.,;!?)]|$)/gu,'$1 Kč').replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый'),items:null};
   // список: строки до первого значка — хвост пункта с прошлого скриншота (помечаем, при склейке уберётся)
   const items=[];let head=[];
   for(const l of lines){if(l.item)items.push(l.t);else if(items.length){const p=items[items.length-1];items[items.length-1]=/-$/.test(p)?p.slice(0,-1)+l.t:p+' '+l.t}else head.push(l.t)}
-  return{text:items.join('\n'),items:items.map(x=>x.replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый')),head:head.join(' ')}}
+  return{text:items.join('\n'),items:items.map(x=>x.replace(/([\p{Script=Cyrillic}])ьй(?![\p{L}])/gu,'$1ый')),head:head.join(' '),title:card?head.join(' ').slice(0,120):''}}
 // склейка скриншотов с перекрытием: конец предыдущего = начало следующего — повтор не добавляем
 function mergeSeq(A,B){const nz=s=>String(s).toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\d]+/gu,''),
   lv=(a,b)=>{const m=a.length,n=b.length;if(!m||!n)return Math.max(m,n);let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]},
@@ -4998,6 +5023,16 @@ function noteTextOld(rows,o){
 async function ocrNoteText(c){const r=await noteText(c,await ocrRead(c));return r.text}
 function shotText(o){const R=(o.rows&&o.rows.length?o.rows.map(r=>({t:r.t,y0:r.y})):o.lines).slice().sort((a,b)=>a.y0-b.y0);return R.filter(l=>l.y0>o.H*.045&&/[\p{L}\d]{2,}/u.test(l.t)).map(l=>l.t.trim()).join('\n').replace(/\n{3,}/g,'\n\n').trim()}
 function botTextNote(txt){
+  // несколько карточек со скриншота — несколько заметок
+  if(txt&&typeof txt==='object'&&Array.isArray(txt.cards)){const made=[];
+    for(const cd of txt.cards){const it=(cd.items||[]).map(x=>String(x).trim()).filter(Boolean);let m;
+      if(it.length)m=cleanMemo({id:newId(made.length),title:cd.title||'',text:'',items:it.map(t=>({t:t.slice(0,500),d:false})),color:COLORS[1],pin:false,upd:Date.now()});
+      else{const L=String(cd.text||'').split('\n').filter(Boolean);if(!L.length)continue;m=cleanMemo({id:newId(made.length),title:L.length>1?L[0].slice(0,120):'',text:(L.length>1?L.slice(1):L).join('\n'),color:COLORS[1],pin:false,upd:Date.now()})}
+      if(m)made.push(m)}
+    if(!made.length)return botSay(esc(T('На фото не нашлось текста')));
+    memos.unshift(...made.slice().reverse());saveMemos();try{renderMemos()}catch(e){}
+    const und=()=>{const ids=new Set(made.map(m=>m.id));memos=memos.filter(x=>!ids.has(x.id));saveMemos();try{renderMemos()}catch(e){}};botUndo.push({t:T`${made.length} заметок`,undo:und});
+    return botSay(esc(T`📝 Нашёл на скриншоте ${made.length} ${plural(made.length,T('заметку'),T('заметки'),T('заметок'))} — записал каждую отдельно:`)+'\n'+esc(made.map(m=>(m.items?'☑ ':'📝 ')+(m.title||(m.items?m.items[0].t:String(m.text).split('\n')[0])).slice(0,50)+(m.items?` (${m.items.length})`:'')).join('\n')),false,[[T('Открыть'),()=>showView('notes')],[T('🗑 Удалить все'),()=>{und();botSay(esc(T('Отменено — заметки удалены')))}]])}
   // список с галочками (скриншот Google Keep и т. п.) — заметка-список
   if(txt&&typeof txt==='object'&&Array.isArray(txt.items)){const it=txt.items.map(x=>String(x).trim()).filter(Boolean).slice(0,300);if(!it.length)return botSay(esc(T('На фото не нашлось текста')));
     const m=cleanMemo({id:newId(),title:'',text:'',items:it.map(t=>({t:t.slice(0,500),d:false})),color:COLORS[1],pin:false,upd:Date.now()});memos.unshift(m);saveMemos();try{renderMemos()}catch(e){}
@@ -5049,7 +5084,8 @@ async function traySend0(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.r
   // скриншоты с текстом — одной заметкой по порядку
   {const tx=R.filter(r=>r.txt);if(tx.length&&tx.length*2>=R.length){
     const T2=tx.map(r=>typeof r.txt==='string'?{text:r.txt,items:null}:r.txt);
-    if(T2.every(x=>x.items)){let L=T2[0].items;for(const x of T2.slice(1))L=mergeSeq(L,x.items);botTextNote({items:L})}
+    if(T2.some(x=>x.cards)){botTextNote({cards:T2.flatMap(x=>x.cards||[x.items?{items:x.items,title:''}:{text:x.text}])})}
+    else if(T2.every(x=>x.items)){let L=T2[0].items;for(const x of T2.slice(1))L=mergeSeq(L,x.items);botTextNote({items:L})}
     else{let L=T2[0].text.split('\n');for(const x of T2.slice(1))L=mergeSeq(L,x.text.split('\n'));botTextNote(L.join('\n'))}R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}
   const movie=R.filter(r=>!(r.ml.length>=2&&!/(выход|серии|серия|сезон|episode|премьер)/i.test(r.o.text)));R.filter(r=>!movie.includes(r)).forEach(r=>botMoneyCard(r.ml));if(!movie.length)return;
   const tsel=movie.filter(r=>r.a.title).sort((x,y)=>y.a.tscore*(y.a.url?1.5:1)*(y.thumb?1.2:1)-x.a.tscore*(x.a.url?1.5:1)*(x.thumb?1.2:1))[0],

@@ -1176,6 +1176,9 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
+.famc{display:grid;gap:10px}.famh{display:grid;gap:3px}.famh small{color:var(--mut);font-size:12.5px;line-height:1.4}.famrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.famrow input{flex:1 1 180px;min-width:0;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 10px;font:inherit;font-size:14px}
+.fampp{grid-column:1/-1;display:flex!important;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut)}.fampp em{font-style:normal;font-weight:700}.msum .fampp b{display:inline;font-size:13px}.msum .fampp span{font-size:13px}
+.msum b{white-space:nowrap}@media(max-width:760px){.msum b{font-size:clamp(12px,4vw,16px)!important;overflow:visible!important;text-overflow:clip!important;letter-spacing:-.3px}}.mwho{color:var(--acc2)!important}
 #yP{white-space:pre-line}
 /* прозрачные панели (Настройки → Стиль → «Прозрачность панелей») */
 html.see .glass{background:color-mix(in srgb,var(--bg) var(--seeMix,60%),transparent)!important;backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important;-webkit-backdrop-filter:blur(var(--seeBlur,8px)) saturate(1.15)!important}
@@ -1520,6 +1523,7 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
         <div id="monBody" class="mon" style="padding:0;overflow:visible">
           <div class="ccard"><div class="chead"><button class="pill" id="monPrev" aria-label="Назад">‹</button><span class="mtype" id="monPer"><button data-mp="m" class="on">Месяц</button><button data-mp="y">Год</button></span><b id="monTitle"></b><button class="pill" id="monNext" aria-label="Вперёд">›</button></div>
             <div class="msum" id="monSum"></div></div>
+          <div class="ccard famc" id="famBox"></div>
           <div class="ccard"><div class="madd2"><span class="mtype" id="monType"><button data-mt="out" class="on">− Расход</button><button data-mt="in">+ Доход</button></span><input class="amt" id="monAmt" type="number" min="0" step="any" inputmode="decimal" placeholder="Сумма"><select id="monCat"></select><input class="nt" id="monNote" maxlength="120" placeholder="Комментарий (необязательно)"><input type="date" id="monDate"><button class="cta" id="monAdd">Добавить</button></div></div>
           <div class="ccard"><h3 style="margin:0 0 10px">Куда ушли деньги</h3><div class="mcat" id="monCats"></div></div>
           <div class="ccard"><h3 style="margin:0 0 10px">Записи</h3><div class="mlist" id="monList"></div></div>
@@ -1820,6 +1824,12 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
   <canvas id="partCv" class="qcv" width="10" height="10"></canvas><pre id="partTx" class="parttx"></pre>
   <div class="dacts" style="justify-content:center;flex-wrap:wrap"><button class="pill" id="partCopy" type="button">📋 Скопировать</button><button class="pill" id="partShare" type="button">📤 Поделиться</button><button class="cta" id="partClose" type="button">Закрыть</button></div>
 </div></dialog>
+<dialog id="famdlg" class="mdlg"><div class="mde" style="--c:var(--acc2);text-align:center;max-width:520px">
+  <h3 style="margin:2px 0 6px">👪 Пригласить в семью</h3><p style="color:var(--mut);margin:0 0 8px">На другом телефоне или ПК: Gemday → Доходы и расходы → «📷 Присоединиться по QR» и наведите камеру на этот код.</p>
+  <canvas id="famCv" class="qcv" width="10" height="10"></canvas>
+  <p class="qnote">Общими становятся только доходы и расходы. Показывайте код только членам семьи.</p>
+  <div class="dacts" style="justify-content:center"><button class="cta" id="famX" type="button">Закрыть</button></div>
+</div></dialog>
 <dialog id="dsdlg" class="mdlg"><div class="mde" style="--c:var(--acc2);max-width:560px">
   <h3 style="margin:2px 0 10px" id="dsT">⚙️ Настроить день</h3>
   <small class="dsl">Тип дня</small><div class="cats" id="dsCats"></div>
@@ -1872,7 +1882,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.25',APP_DATE='10.11.2026';
+const APP_VER='3.26',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -1931,7 +1941,8 @@ const WDL=[T('воскресенье'),T('понедельник'),T('вторн
 function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast(T('⚠ Не удалось сохранить: память браузера заполнена'))}}
 // всё, что читается из памяти или из файла, проверяется: в разметку попадают только правильные значения
-const RX={id:/^[\w-]{1,40}$/,date:/^\d{4}-\d\d-\d\d$/,time:/^([01]\d|2[0-3]):[0-5]\d$/,color:/^#[0-9a-fA-F]{6}$/};
+const RX={id:{test:v=>typeof v==='string'&&/^[\w-]{1,40}$/.test(v)}, // только строка: «undefined» раньше проходил проверку — записи о деньгах оставались без номера и не удалялись
+ date:/^\d{4}-\d\d-\d\d$/,time:/^([01]\d|2[0-3]):[0-5]\d$/,color:/^#[0-9a-fA-F]{6}$/};
 const str=(v,max)=>typeof v==='string'?v.slice(0,max):'';
 const okDays=a=>Array.isArray(a)?a.filter(d=>RX.date.test(d)):[];
 function cleanNote(n){
@@ -4123,8 +4134,9 @@ async function scanOpen(face){
     try{const k=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));c.width=v.videoWidth*k|0;c.height=v.videoHeight*k|0;x.drawImage(v,0,0,c.width,c.height);
       const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'dontInvert'});
       if(r&&r.data){const i=r.data.indexOf('#s=');
-        const pi=r.data.indexOf('#n=');
-        if(pi>=0){$('#scdlg').close();p2pJoin(r.data.slice(pi+3))}
+        const pi=r.data.indexOf('#n='),fi=r.data.indexOf('#fam=');
+        if(fi>=0){$('#scdlg').close();famJoinAsk(r.data.slice(fi+5))}
+        else if(pi>=0){$('#scdlg').close();p2pJoin(r.data.slice(pi+3))}
         else if(i<0)S.textContent=T('Это не QR-код Gemday');
         else{const res=await syncIn(r.data.slice(i),true);if(res&&res.n)S.textContent=T`✓ Получено ${res.have} из ${res.n} — держите камеру, коды листаются`}}}
     finally{scBusy=false}},320)}
@@ -4164,6 +4176,7 @@ function applySync(raw,fromPhone){
   location.reload()}
 async function syncIn(h,quiet){
   if(typeof h!=='string'){h=location.hash;
+    {const fm=/^#fam=([A-Za-z0-9_.-]{20,200})$/.exec(h);if(fm){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}return famJoinAsk(fm[1])}}
     const pm=/^#n=([A-Za-z0-9_.-]{20,200})$/.exec(h);
     if(pm){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
       if(/Android/i.test(navigator.userAgent)&&!window.CrystalAndroid)return yShow('Gemday',T('Где открыть записи?'),[{t:T('📱 В приложении Gemday'),href:`intent://sync?n=${pm[1]}#Intent;scheme=crystal;package=app.crystal;end`},{t:T('🌐 Здесь, в браузере'),cta:1,on:()=>p2pJoin(pm[1])}]);
@@ -4559,27 +4572,34 @@ proPaint();
 
 // ======== Деньги: доходы и расходы ========
 // cal.money = [{id, d:'ymd', a:число, t:'in'|'out', c:категория, n:комментарий}]
-const MCAT={out:['Еда','Транспорт','Дом и счета','Связь и интернет','Здоровье','Одежда','Развлечения','Подарки','Дети','Красота','Другое'],in:['Зарплата','Подработка','Подарок','Возврат','Продажа','Другое']}; /*i18n:keep*/
-const MCOL=['#ff5d73','#ffb547','#60a5fa','#22d3ee','#34d399','#f472b6','#a78bfa','#fb923c','#facc15','#e879f9','#94a3b8'];
+const MCAT={out:['Продукты','Кафе и рестораны','Транспорт','Квартира (аренда)','Ипотека','Коммуналка','Связь и интернет','Здоровье','Одежда','Детские товары','Хобби','Развлечения','Подарки','Красота','Непредвиденные расходы','Другое'],in:['Зарплата','Подработка','Подарок','Возврат','Продажа','Другое']}; /*i18n:keep*/
+// старые категории → новые (записи переходят сами)
+const MCAT_OLD={'Еда':'Продукты','Дом и счета':'Коммуналка','Дети':'Детские товары'}; /*i18n:keep*/
+const MCOL=['#ff5d73','#fb923c','#ffb547','#60a5fa','#3b82f6','#22d3ee','#06b6d4','#34d399','#f472b6','#facc15','#a3e635','#a78bfa','#e879f9','#f9a8d4','#ef4444','#94a3b8'];
 const cleanMoney=x=>{if(!x||typeof x!=='object'||!RX.date.test(x.d))return null;const a=Math.round(+x.a*100)/100,t=x.t==='in'?'in':'out';if(!(a>0&&a<1e9))return null; /*i18n:keep*/
-  return{id:RX.id.test(x.id)?x.id:newId(),d:x.d,a,t,c:MCAT[t].includes(x.c)?x.c:T('Другое'),n:str(x.n,120)}};
+  const c0=t==='out'&&MCAT_OLD[x.c]?MCAT_OLD[x.c]:x.c;
+  return{id:RX.id.test(x.id)?x.id:newId(),d:x.d,a,t,c:MCAT[t].includes(c0)?c0:T('Другое'),n:str(x.n,120)}};
 let mlog=cleanList(load('cal.money',[]),cleanMoney);
 const saveMoney=()=>save('cal.money',mlog);
+{const raw=load('cal.money',[]);if(Array.isArray(raw)&&raw.some(x=>x&&typeof x.id!=='string'))saveMoney()} // старым записям — постоянный номер
 let monP='m',monRef=new Date(),monT='out';
-function guessCat(t,txt){const s=String(txt||'').toLowerCase(),R=[[/продукт|еда|магазин|кафе|ресторан|обед|пицц|кофе|food|jídlo|lidl|albert|billa|kaufland|tesco/,'Еда'],[/такси|бензин|автобус|метро|проезд|транспорт|поезд|uber|bolt|fuel|benzín/,'Транспорт'],[/квартир|аренд|свет|газ|вода|коммун|счёт|счет|rent/,'Дом и счета'],[/телефон|интернет|связь|мобил/,'Связь и интернет'],[/аптек|врач|лекарств|здоров|lékárna/,'Здоровье'],[/одежд|обув|куртк|zara|h&m/,'Одежда'],[/кино|игр|подписк|netflix|spotify|концерт|бар/,'Развлечения'],[/подар/,'Подарки'],[/дет|садик|школ/,'Дети'],[/салон|маникюр|стрижк|космет/,'Красота'],[/зарплат|зп|оклад|salary|výplata/,'Зарплата'],[/подработ|халтур|фриланс/,'Подработка'],[/возврат|кэшбэк|cashback/,'Возврат'],[/продал|продаж/,'Продажа']]; /*i18n:keep*/
+function guessCat(t,txt){const s=String(txt||'').toLowerCase(),R=[[/ипотек|mortgage|hypoték/,'Ипотека'],[/квартир|аренд|найм|rent|nájem/,'Квартира (аренда)'],[/коммун|свет|газ|вода|электр|отоплен|жкх|счёт за|счет за|energie|elektřin/,'Коммуналка'],[/детск|ребён|ребен|игрушк|памперс|подгуз|садик|школ|коляск/,'Детские товары'],[/хобби|рыбалк|краск|пряж|конструктор|лего|настолк|гитар|инструмент для/,'Хобби'],[/штраф|ремонт|поломк|сломал|срочн|непредвид|эвакуат/,'Непредвиденные расходы'],[/кафе|ресторан|обед|пицц|кофе|бургер|суши|доставк|bolt food|wolt|kfc|mcdonald/,'Кафе и рестораны'],[/продукт|еда|магазин|супермаркет|хлеб|молок|food|jídlo|lidl|albert|billa|kaufland|tesco|penny/,'Продукты'],[/такси|бензин|автобус|метро|проезд|транспорт|поезд|uber|bolt|fuel|benzín/,'Транспорт'],[/телефон|интернет|связь|мобил/,'Связь и интернет'],[/аптек|врач|лекарств|здоров|lékárna/,'Здоровье'],[/одежд|обув|куртк|zara|h&m/,'Одежда'],[/кино|игр|подписк|netflix|spotify|концерт|бар/,'Развлечения'],[/подар/,'Подарки'],[/дет|садик|школ/,'Дети'],[/салон|маникюр|стрижк|космет/,'Красота'],[/зарплат|зп|оклад|salary|výplata/,'Зарплата'],[/подработ|халтур|фриланс/,'Подработка'],[/возврат|кэшбэк|cashback/,'Возврат'],[/продал|продаж/,'Продажа']]; /*i18n:keep*/
   for(const[r,c]of R)if(r.test(s)&&MCAT[t].includes(c))return c;return T('Другое')}
 function monRange(){const y=monRef.getFullYear(),m=monRef.getMonth();return monP==='m'?[ymd(new Date(y,m,1)),ymd(new Date(y,m+1,0))]:[y+'-01-01',y+'-12-31']}
 function monRender(){
   const lock=!isPro();$('#monLock').hidden=!lock;$('#monBody').hidden=lock;
   if(lock){$('#monLock').innerHTML=T`<div class="big">💰</div><h3>Доходы и расходы</h3><p>Записывайте, сколько заработали и сколько потратили — Gemday покажет итог за месяц и год и куда ушли деньги. Чеки и выписки можно просто сфотографировать — бот впишет сам.</p><button class="cta" id="monTry">💎 Попробовать Gemday Pro</button>`;$('#monTry').onclick=proShow;return}
-  const[a,b]=monRange(),L=mlog.filter(x=>x.d>=a&&x.d<=b).sort((x,y)=>y.d.localeCompare(x.d)),cur=' '+esc(settings.cur);
+  famPaint();
+  const famOn=fam&&monWho==='fam',SRC=famOn?mlog.map(x=>({...x,who:fam.name,mine:1})).concat(Object.values(famLog).flatMap(v=>v.list.map(x=>({...x,who:v.who})))):mlog;
+  const[a,b]=monRange(),L=SRC.filter(x=>x.d>=a&&x.d<=b).sort((x,y)=>y.d.localeCompare(x.d)),cur=' '+esc(settings.cur);
   $('#monTitle').textContent=monP==='m'?MONTHS[monRef.getMonth()]+' '+monRef.getFullYear():String(monRef.getFullYear());
   $$('#monPer button').forEach(x=>x.classList.toggle('on',x.dataset.mp===monP));
   const inc=L.filter(x=>x.t==='in').reduce((s,x)=>s+x.a,0),out=L.filter(x=>x.t==='out').reduce((s,x)=>s+x.a,0),fm=v=>Math.round(v).toLocaleString(LOC);
-  $('#monSum').innerHTML=T`<div><b style="color:var(--green)">+${fm(inc)}${cur}</b><span>Доход</span></div><div><b style="color:var(--red)">−${fm(out)}${cur}</b><span>Расход</span></div><div><b>${inc-out<0?'−':''}${fm(Math.abs(inc-out))}${cur}</b><span>Осталось</span></div>`;
+  $('#monSum').innerHTML=T`<div><b style="color:var(--green)">+${fm(inc)}${cur}</b><span>Доход</span></div><div><b style="color:var(--red)">−${fm(out)}${cur}</b><span>Расход</span></div><div><b>${inc-out<0?'−':''}${fm(Math.abs(inc-out))}${cur}</b><span>Осталось</span></div>`
+    +(famOn?(()=>{const P={};L.forEach(x=>{const p=P[x.who]=P[x.who]||{i:0,o:0};p[x.t==='in'?'i':'o']+=x.a});return `<div class="fampp">${Object.entries(P).map(([w,p])=>`<span>👤 <b>${esc(w)}</b> <em style="color:var(--red)">−${fm(p.o)}${cur}</em>${p.i?` <em style="color:var(--green)">+${fm(p.i)}${cur}</em>`:''}</span>`).join('')}</div>`})():'');
   const by={};L.filter(x=>x.t==='out').forEach(x=>by[x.c]=(by[x.c]||0)+x.a);const cats=Object.entries(by).sort((x,y)=>y[1]-x[1]),mx=cats.length?cats[0][1]:1;
   $('#monCats').innerHTML=cats.length?cats.map(([c,v])=>`<div class="r"><span>${T(c)}</span><div class="bar"><i style="width:${Math.max(3,v/mx*100)}%;--c:${MCOL[MCAT.out.indexOf(c)]||'#94a3b8'}"></i></div><b>${fm(v)}${cur}</b></div>`).join(''):`<small style="color:var(--mut)">${T('Расходов за этот период пока нет')}</small>`;
-  $('#monList').innerHTML=L.length?L.slice(0,300).map(x=>{const d=parseYmd(x.d);return `<div class="mrow"><small>${d.getDate()} ${MONTHS_G[d.getMonth()].slice(0,3)}</small><span>${T(x.c)}${x.n?` <small>· ${esc(x.n)}</small>`:''}</span><span class="${x.t}">${x.t==='in'?'+':'−'}${fm(x.a)}${cur}</span><button data-mdel="${x.id}" title="${esc(T('Удалить'))}">✕</button></div>`}).join(''):`<small style="color:var(--mut)">${T('Записей пока нет — добавьте вверху или напишите боту «потратил 300 на продукты»')}</small>`;
+  $('#monList').innerHTML=L.length?L.slice(0,300).map(x=>{const d=parseYmd(x.d);return `<div class="mrow"><small>${d.getDate()} ${MONTHS_G[d.getMonth()].slice(0,3)}</small><span>${T(x.c)}${x.n?` <small>· ${esc(x.n)}</small>`:''}${x.who?` <small class="mwho">👤 ${esc(x.who)}</small>`:''}</span><span class="${x.t}">${x.t==='in'?'+':'−'}${fm(x.a)}${cur}</span>${!x.who||x.mine?`<button data-mdel="${x.id}" title="${esc(T('Удалить'))}">✕</button>`:'<i></i>'}</div>`}).join(''):`<small style="color:var(--mut)">${T('Записей пока нет — добавьте вверху или напишите боту «потратил 300 на продукты»')}</small>`;
 }
 function monCatsFill(){$('#monCat').innerHTML=MCAT[monT].map(c=>`<option value="${c}">${T(c)}</option>`).join('');$$('#monType button').forEach(b=>b.classList.toggle('on',b.dataset.mt===monT))}
 monCatsFill();$('#monDate').value=ymd(new Date());
@@ -4587,10 +4607,48 @@ $('#monType').onclick=e=>{const b=e.target.closest('[data-mt]');if(b){monT=b.dat
 $('#monPer').onclick=e=>{const b=e.target.closest('[data-mp]');if(b){monP=b.dataset.mp;monRender()}};
 $('#monPrev').onclick=()=>{monP==='m'?monRef.setMonth(monRef.getMonth()-1):monRef.setFullYear(monRef.getFullYear()-1);monRender()};
 $('#monNext').onclick=()=>{monP==='m'?monRef.setMonth(monRef.getMonth()+1):monRef.setFullYear(monRef.getFullYear()+1);monRender()};
-function moneyAdd(list){const add=cleanList(list,cleanMoney);mlog.push(...add);saveMoney();if($('#v-money').classList.contains('on'))monRender();return add}
+function moneyAdd(list){const add=cleanList(list,cleanMoney);mlog.push(...add);saveMoney();if($('#v-money').classList.contains('on'))monRender();famPush();return add}
+// ======== Семейный бюджет: только доходы и расходы, общие с семьёй (зашифровано, через ntfy.sh) ========
+// каждое устройство отправляет СВОЙ список целиком; чужие списки хранятся отдельно (cal.famLog) и показываются в режиме «Семья»
+let fam=(()=>{const x=load('cal.fam',null);return x&&/^crys-fam-[a-z0-9]{20}$/.test(x.topic)&&/^[A-Za-z0-9_-]{43}$/.test(x.key)?{topic:x.topic,key:x.key,name:str(x.name,40)||T('Я'),last:/^[A-Za-z0-9]{1,20}$/.test(x.last||'')?x.last:''}:null})();
+let famLog=(()=>{const o=load('cal.famLog',{})||{},r={};for(const d of Object.keys(o)){if(!/^[a-z0-9]{12}$/.test(d)||d===devId)continue;const v=o[d];if(!v||typeof v!=='object')continue;r[d]={who:str(v.who,40)||'?',t:+v.t||0,list:cleanList(Array.isArray(v.list)?v.list:[],cleanMoney).slice(0,5000)}}return r})();
+let monWho='me';
+const famSave=()=>{save('cal.fam',fam);save('cal.famLog',famLog)};
+async function famPush(force){if(!fam||!navigator.onLine)return;const sig=JSON.stringify(mlog)+'|'+fam.name;if(!force&&sig===famPush.sig)return;
+  if(!force&&Date.now()-(famPush.t||0)<60000){clearTimeout(famPush.h);famPush.h=setTimeout(()=>famPush(),61000);return} // не чаще раза в минуту
+  famPush.t=Date.now();try{await relayPut(fam.topic,await enc(await zipStr(JSON.stringify({v:1,dev:devId,who:fam.name,t:Date.now(),list:mlog})),unb64u(fam.key)),'fam');famPush.sig=sig}catch(e){}}
+function famReq(){try{if(fam&&navigator.onLine)fetch(`${RELAY}${fam.topic}?tags=famreq`,{method:'PUT',body:'r.'+devId}).catch(()=>{})}catch(e){}}
+async function famPull(){if(!fam||!navigator.onLine||famPull.busy)return;famPull.busy=1;
+  try{const r=await fetch(`${RELAY}${fam.topic}/json?poll=1&since=${fam.last||'12h'}`);if(!r.ok)return;const raw=unb64u(fam.key),files=[];let last=fam.last,ch=false;
+    for(const line of (await r.text()).split('\n')){if(!line.trim())continue;let m;try{m=JSON.parse(line)}catch(e){continue}if(m.event!=='message'||typeof m.id!=='string')continue;last=m.id;
+      if(Array.isArray(m.tags)&&m.tags.includes('famreq')){if(m.message!=='r.'+devId){famPush.sig=null;setTimeout(()=>famPush(true),1500)}continue}
+      if(Array.isArray(m.tags)&&m.tags.includes('fam')){const a=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(m.attachment&&m.attachment.url||'');if(a)files.push(a[1])}}
+    for(const id of files.reverse()){let p;try{p=JSON.parse(await zipStr(await relayGet(id,raw),true))}catch(e){continue}
+      if(!p||typeof p!=='object'||p.dev===devId||!/^[a-z0-9]{12}$/.test(p.dev||''))continue;const cur=famLog[p.dev];if(cur&&cur.t>=+p.t)continue;
+      famLog[p.dev]={who:str(p.who,40)||'?',t:+p.t||Date.now(),list:cleanList(Array.isArray(p.list)?p.list:[],cleanMoney).slice(0,5000)};ch=true}
+    fam.last=last;famSave();if(ch&&$('#v-money').classList.contains('on'))monRender()}catch(e){}finally{famPull.busy=0}}
+function famName(){const v=($('#famName')&&$('#famName').value||'').trim().slice(0,40);return v||(fam&&fam.name)||T('Я')}
+function famPaint(){const el=$('#famBox');if(!el)return;
+  if(!fam){el.innerHTML=`<div class="famh"><b>👪 ${T('Семейный бюджет')}</b><small>${T('Общие доходы и расходы с семьёй: каждый вписывает своё, итоги — общие. Календарь, заметки и цикл остаются личными. Передаётся зашифрованно.')}</small></div><div class="famrow"><input id="famName" maxlength="40" placeholder="${esc(T('Ваше имя (например: Саша)'))}"><button class="cta" id="famNew" type="button">${T('Создать семью')}</button><button class="pill" id="famJoin" type="button">📷 ${T('Присоединиться по QR')}</button></div>`;
+    $('#famNew').onclick=famCreate;$('#famJoin').onclick=()=>{try{localStorage.setItem('cal.famPendingName',famName())}catch(e){}scanOpen(isPhone?'environment':'user')};return}
+  const mem=[fam.name+' '+T('(вы)'),...Object.values(famLog).map(v=>v.who)];
+  el.innerHTML=`<div class="famh"><b>👪 ${T('Семья')}: ${mem.length} ${plural(mem.length,T('участник'),T('участника'),T('участников'))}</b><small>${mem.map(esc).join(' · ')}</small></div><div class="famrow"><span class="mtype" id="famWho"><button data-fw="me" class="${monWho==='me'?'on':''}">${T('Мои')}</button><button data-fw="fam" class="${monWho==='fam'?'on':''}">👪 ${T('Семья')}</button></span><button class="pill" id="famInv" type="button">➕ ${T('Пригласить (QR)')}</button><button class="pill" id="famSync" type="button">🔄</button><button class="pill" id="famLeave" type="button">${T('Выйти')}</button></div>`;
+  $('#famWho').onclick=e=>{const b=e.target.closest('[data-fw]');if(b){monWho=b.dataset.fw;monRender()}};
+  $('#famInv').onclick=famInvite;$('#famSync').onclick=()=>{toast(T('🔄 Обновляю семейный бюджет…'));famReq();famPush(true);setTimeout(famPull,4000);setTimeout(famPull,12000)};
+  $('#famLeave').onclick=()=>yShow(T('Выйти из семейного бюджета?'),T('Чужие записи пропадут с этого устройства, ваши останутся. Вернуться можно по QR-коду.'),[{t:T('Выйти'),cta:1,on:()=>{fam=null;famLog={};monWho='me';try{localStorage.removeItem('cal.fam');localStorage.removeItem('cal.famLog')}catch(e){}monRender()}},{t:T('Отмена')}])}
+function famCreate(){fam={topic:'crys-fam-'+rnd(20),key:b64u(crypto.getRandomValues(new Uint8Array(32))),name:famName(),last:''};famLog={};famSave();famPush(true);monWho='fam';monRender();famInvite()}
+function famInvite(){if(!fam)return;const u=`${SYNC_URL}#fam=${fam.topic}.${fam.key}`;try{const q=qrcode(0,'M');q.addData(u,'Byte');q.make();const n=q.getModuleCount(),m=4,px=Math.max(4,Math.floor(560/(n+m*2))),cv=$('#famCv'),g=cv.getContext('2d');cv.width=cv.height=(n+m*2)*px;g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.fillStyle='#000';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))g.fillRect((k+m)*px,(r+m)*px,px,px)}catch(e){}$('#famdlg').showModal()}
+// вступить — только после подтверждения (сам код/ссылка ничего не делает)
+function famJoinAsk(v){const m=/^(crys-fam-[a-z0-9]{20})\.([A-Za-z0-9_-]{43})$/.exec(v||'');if(!m)return yShow(T('QR-код не распознан'),T('Попросите показать код семьи ещё раз: Доходы и расходы → Семья → «Пригласить».'),[{t:T('Закрыть')}]);
+  if(fam&&fam.topic===m[1])return toast(T('Вы уже в этой семье'));
+  let nm='';try{nm=localStorage.getItem('cal.famPendingName')||''}catch(e){}
+  yShow(T('👪 Присоединиться к семейному бюджету?'),T('Ваши доходы и расходы будут видны участникам этой семьи (зашифрованно), а вы увидите их записи. Календарь, заметки и цикл не передаются. Соглашайтесь, только если код показал член вашей семьи.'),[{t:T('👪 Да, присоединиться'),cta:1,on:()=>{fam={topic:m[1],key:m[2],name:str(nm,40)||T('Я'),last:''};famLog={};famSave();try{localStorage.removeItem('cal.famPendingName')}catch(e){}famReq();famPush(true);setTimeout(famPull,4000);setTimeout(famPull,12000);monWho='fam';showView('money');toast(T('👪 Вы в семейном бюджете'))}},{t:T('Отмена')}])}
+$('#famX').onclick=()=>$('#famdlg').close();
+// раз в минуту: забрать чужое и отправить своё, если прошлая отправка не дошла (сервис бывает перегружен)
+setInterval(()=>{famPull();famPush()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)famPull()});addEventListener('load',()=>setTimeout(()=>{if(fam){famReq();famPull();famPush()}},3000));
 $('#monAdd').onclick=()=>{const a=+$('#monAmt').value;if(!(a>0))return toast(T('Укажите сумму'));moneyAdd([{d:$('#monDate').value||ymd(new Date()),a,t:monT,c:$('#monCat').value,n:$('#monNote').value}]);$('#monAmt').value='';$('#monNote').value='';toast(monT==='in'?T('💰 Доход записан'):T('💸 Расход записан'))};
 $('#monAmt').onkeydown=e=>{if(e.key==='Enter')$('#monAdd').click()};
-$('#monList').onclick=e=>{const b=e.target.closest('[data-mdel]');if(!b)return;const i=mlog.findIndex(x=>x.id===b.dataset.mdel);if(i<0)return;const[x]=mlog.splice(i,1);saveMoney();monRender();toast(T('🗑 Запись удалена'),()=>{mlog.push(x);saveMoney();monRender()})};
+$('#monList').onclick=e=>{const b=e.target.closest('[data-mdel]');if(!b)return;const i=mlog.findIndex(x=>x.id===b.dataset.mdel);if(i<0)return;const[x]=mlog.splice(i,1);saveMoney();monRender();famPush();toast(T('🗑 Запись удалена'),()=>{mlog.push(x);saveMoney();monRender();famPush()})};
 
 // ======== Бот: текст, голос, фото → напоминание / заметка / деньги ========
 const botLog=[];

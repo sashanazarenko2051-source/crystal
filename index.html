@@ -1882,7 +1882,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.26',APP_DATE='10.11.2026';
+const APP_VER='3.27',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4878,13 +4878,24 @@ function ocrMoney(o){
     const inc=m[1]==='+'||!m[1]&&/зарплат|поступлен|пополнен|перевод от|возврат|кешбэк|cashback|доход|получен|salary|výplata|income|refund/i.test(low);
     out.push({d:day,a,t:inc?'in':'out',c:guessCat(inc?'in':'out',low),n:name})}
   return out}
+// записи вида «16.10-261+800» (дата, «−» расход, «+» доход; число без знака — расход) — список трат из заметки/скриншота
+function parseMoneyLog(lines){const now=new Date(),today=ymd(now),out=[];let hit=0,tot=0;
+  for(let l of lines||[]){l=String(l||'').replace(/[–—−]/g,'-').replace(/\s+/g,' ').trim();if(!l)continue;tot++;
+    const m=l.match(/^(\d{1,2})[.,](\d{1,2})(?:[.,](\d{2,4}))?\s*(?=[-+\s]\s*\d)(.*)$/);if(!m)continue;
+    const D=+m[1],M=+m[2]-1;if(D<1||D>31||M<0||M>11)continue;const Y0=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):now.getFullYear();let dt=new Date(Y0,M,D);if(!m[3]&&ymd(dt)>addD(today,1))dt=new Date(Y0-1,M,D);const d=ymd(dt);
+    let any=false;for(const t of m[4].matchAll(/([+-])?\s*(\d+(?:[.,]\d{1,2})?)/g)){const a=+t[2].replace(',','.');if(!(a>0&&a<1e8))continue;any=true;out.push({d,a,t:t[1]==='+'?'in':'out',c:T('Другое'),n:''})}
+    if(any)hit++}
+  if(!(hit>=3&&hit>=tot*.5))return null;
+  // уже записанное (тот же день, сумма, расход/доход) — не дублируем: галочка снята
+  const have={};mlog.forEach(x=>{const k=x.d+'|'+x.a+'|'+x.t;have[k]=(have[k]||0)+1});return out.map(x=>{const k=x.d+'|'+x.a+'|'+x.t;if(have[k]){have[k]--;return{...x,dup:1}}return x})}
 function botMoneyCard(list){
-  const d=botSay(esc(T`Нашёл ${list.length} ${plural(list.length,T('запись'),T('записи'),T('записей'))} с суммами — снимите галочки с лишних:`));
+  const nI=list.filter(x=>!x.dup&&x.t==='in'),nO=list.filter(x=>!x.dup&&x.t==='out'),sm=L=>L.reduce((s,x)=>s+x.a,0).toLocaleString(LOC);
+  const d=botSay(esc(T`Нашёл ${list.length} ${plural(list.length,T('запись'),T('записи'),T('записей'))} с суммами — снимите галочки с лишних:`)+'\n'+esc(T`расходы: ${nO.length} на −${sm(nO)} ${settings.cur} · доходы: ${nI.length} на +${sm(nI)} ${settings.cur}`)+(list.some(x=>x.dup)?'\n'+esc(T`уже записано раньше (галочка снята): ${list.filter(x=>x.dup).length}`):''));
   const f=document.createElement('div');f.className='mlist';f.style.marginTop='8px';
-  f.innerHTML=list.map((x,i)=>`<label class="mrow" style="grid-template-columns:24px 1fr auto"><input type="checkbox" data-i="${i}" checked><span>${esc(x.n||T(x.c))} <small>· ${dayLabel(x.d)} · ${T(x.c)}</small></span><span class="${x.t}">${x.t==='in'?'+':'−'}${x.a.toLocaleString(LOC)} ${esc(settings.cur)}</span></label>`).join('');
+  f.innerHTML=list.map((x,i)=>`<label class="mrow" style="grid-template-columns:24px 1fr auto"><input type="checkbox" data-i="${i}"${x.dup?'':' checked'}><span>${esc(x.n||dayLabel(x.d))} <small>· ${x.n?dayLabel(x.d)+' · ':''}${T(x.c)}${x.dup?' · '+T('уже есть'):''}</small></span><span class="${x.t}">${x.t==='in'?'+':'−'}${x.a.toLocaleString(LOC)} ${esc(settings.cur)}</span></label>`).join('');
   d.append(f);const w=document.createElement('div');w.className='bact';
   const go=document.createElement('button');go.className='cta';go.textContent=T('💰 Перенести в «Деньги»');
-  go.onclick=()=>{const pick=list.filter((x,i)=>f.querySelector(`[data-i="${i}"]`).checked),add=moneyAdd(pick);w.remove();
+  go.onclick=()=>{const pick=list.filter((x,i)=>f.querySelector(`[data-i="${i}"]`).checked).map(({dup,...x})=>x),add=moneyAdd(pick);w.remove();
     const inc=add.filter(x=>x.t==='in').reduce((s2,x)=>s2+x.a,0),out=add.filter(x=>x.t==='out').reduce((s2,x)=>s2+x.a,0);
     botSay(esc(T`Перенёс ${add.length}: доход +${inc.toLocaleString(LOC)}, расход −${out.toLocaleString(LOC)} ${settings.cur}`),false,[[T('↺ Отменить'),()=>{mlog=mlog.filter(x=>!add.includes(x));saveMoney();botSay(esc(T('Отменено')))}],[T('Открыть'),()=>showView('money')]])};
   w.append(go);d.append(w);$('#botChat').scrollTop=1e9}
@@ -4991,7 +5002,7 @@ async function botImage0(f){
   const url=URL.createObjectURL(f),img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url});
   const k=Math.min(1,2600/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   const data=c.toDataURL('image/jpeg',.85);botSay(`<img src="${data}" alt="">`,true);
-  const r=await botAnalyzeTO(c);if(r.txt)return botTextNote(r.txt);if(r.err){botSay(esc(r.to?T('⚠ Фото читалось слишком долго — попробуйте скриншот покороче или по одному.'):T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));botCard({title:'',ep:'',se:'',date:'',time:'',text:'',amount:0},c.toDataURL('image/jpeg',.6));return}
+  const r=await botAnalyzeTO(c);if(r.txt){const ml=parseMoneyLog(typeof r.txt==='string'?r.txt.split('\n'):r.txt.items||String(r.txt.text||'').split('\n'));return ml?botMoneyCard(ml):botTextNote(r.txt)}if(r.err){botSay(esc(r.to?T('⚠ Фото читалось слишком долго — попробуйте скриншот покороче или по одному.'):T('⚠ Не получилось прочитать фото. Первый раз нужен интернет — потом работает и без него.')));botCard({title:'',ep:'',se:'',date:'',time:'',text:'',amount:0},c.toDataURL('image/jpeg',.6));return}
   const{a,thumb,ml,o}=r;if(ml.length>=2&&!/(выход|серии|серия|сезон|episode|премьер)/i.test(o.text)){botMoneyCard(ml);return}
   if(!botMerge(a,thumb))botCard(a,thumb);if(ml.length>=2)botMoneyCard(ml)}
 async function botCanvas(f){if(!f||!/^image\//.test(f.type)||f.size>15e6)return null;
@@ -5000,6 +5011,8 @@ async function botCanvas(f){if(!f||!/^image\//.test(f.type)||f.size>15e6)return 
 // прочитать один скриншот: название, дата/таймер, ссылка, обложка, суммы
 // скриншот с обычным текстом (заметка, список, переписка) — не фильм и не выписка: читаем один раз и сохраняем текстом
 const MOVIE_RX=/(выход|серии|серия|сезон|episode|премьер|смотреть онлайн|трейлер|season)/i; /*i18n:keep*/
+// снимок со списком трат «16.10-261+800»: строк с датой и суммой несколько — читаем как текст (а не как фильм/выписку)
+const moneyLogLike=o=>(o.rows||o.lines||[]).filter(r=>/(^|\s)\d{1,2}[.,]\d{1,2}\s*[-+−–—\s]\s*\d/.test(r.t||'')).length>=4;
 function isTextShot(o){const L=o.lines.filter(l=>(l.t.match(/\p{L}/gu)||[]).length>=4);return L.length>=8&&!MOVIE_RX.test(o.text)}
 // ---- текст со скриншота заметки: второй проход по сомнительным словам ----
 // слово с низкой уверенностью или латиница среди русского текста — увеличить и перечитать только кириллицей (rus+ukr)
@@ -5113,7 +5126,7 @@ function botAnalyzeTO(c,label){const h={};let tid;return Promise.race([botAnalyz
 async function botAnalyze(c,label,h){
   const w=botSay('⏳ '+esc(label||T('Читаю текст на фото…')));if(h)h.w=w;
   try{const o=await ocrRead(c),a=ocrAnalyze(o);
-    {const ml0=ocrMoney(o);if(ml0.length<2&&isTextShot(o)){let txt;try{txt=await noteText(c,o)}catch(e){txt=shotText(o)}w.remove();return{a,thumb:'',ml:ml0,o,txt}}}
+    {const ml0=ocrMoney(o);if(moneyLogLike(o)||ml0.length<2&&isTextShot(o)){let txt;try{txt=await noteText(c,o)}catch(e){txt=shotText(o)}w.remove();return{a,thumb:'',ml:ml0,o,txt}}}
     if(!a.date||!a.time||!a.title||!a.url&&o.lines.some(l=>l.y0<o.H*.15&&/\S\.\s?[a-zа-я]{2,}/i.test(l.t))){const o2=await ocrRead(c,1),a2=ocrAnalyze(o2);if(!a.url)a.url=a2.url;if(a2.date&&(!a.date||a2.time&&!a.time)){a.date=a2.date;a.time=a2.time}if(!a.title)a.title=a2.title;if(!a.ep)a.ep=a2.ep;if(!a.se)a.se=a2.se}
     // крупный таймер «01:05:53:51» — распознаётся только на уменьшенной копии
     if(!a.date){try{const hd=o.lines.find(l=>/(?<![\p{L}])(осталось|до выхода|до старта|выйдет через|до премьеры|countdown|next episode)(?![\p{L}])|след\.?\s*сер|выход\S*\s+след/iu.test(l.t)&&!/(вышел|сняли|жанр|описание)/iu.test(l.t)); /*i18n:keep*/
@@ -5149,6 +5162,8 @@ async function traySend0(){const fs=botPend.map(x=>x.f);botPend.forEach(x=>URL.r
   // скриншоты с текстом — одной заметкой по порядку
   {const tx=R.filter(r=>r.txt);if(tx.length&&tx.length*2>=R.length){
     const T2=tx.map(r=>typeof r.txt==='string'?{text:r.txt,items:null}:r.txt);
+    // список трат «16.10-261+800» — сразу в «Доходы и расходы», а не заметкой
+    {const L0=T2.every(x=>x.items)?T2.slice(1).reduce((L,x)=>mergeSeq(L,x.items),T2[0].items):T2.slice(1).reduce((L,x)=>mergeSeq(L,x.text.split('\n')),T2[0].text.split('\n')),ml=!T2.some(x=>x.cards)&&parseMoneyLog(L0);if(ml){botMoneyCard(ml);R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}
     if(T2.some(x=>x.cards)){botTextNote({cards:T2.flatMap(x=>x.cards||[x.items?{items:x.items,title:''}:{text:x.text}])})}
     else if(T2.every(x=>x.items)){let L=T2[0].items;for(const x of T2.slice(1))L=mergeSeq(L,x.items);botTextNote({items:L})}
     else{let L=T2[0].text.split('\n');for(const x of T2.slice(1))L=mergeSeq(L,x.text.split('\n'));botTextNote(L.join('\n'))}R.filter(r=>!r.txt&&r.ml.length>=2).forEach(r=>botMoneyCard(r.ml));return}}

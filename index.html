@@ -1143,6 +1143,7 @@ body.nocal .app{grid-template-columns:clamp(240px,19vw,300px) minmax(0,1fr);grid
 .cfold>:not(summary){margin-left:16px;margin-right:16px}.cfold>:last-child{margin-bottom:14px}
 .cfold>small{display:block;margin-top:8px;line-height:1.4}
 .cset{gap:0}.cset>label{padding:11px 0;border-top:1px solid var(--line);line-height:1.3}.cset>summary+label{border-top:0}.cset>label>input,.cset>label>select{flex-shrink:0}
+.cset>label>span{min-width:0}.cset>label>span small{display:block;color:var(--mut);font-size:12px;line-height:1.35;margin-top:3px}.cset .cpinfo{display:block;padding:8px 10px;margin:2px 0 6px;border-radius:var(--rs);background:color-mix(in srgb,var(--acc) 10%,transparent);color:var(--text);font-size:12.5px;line-height:1.4}.cset .cpinfo:empty{display:none}
 .cset select{max-width:55%;padding:8px 10px;border-radius:var(--rs);border:1px solid var(--line);background:var(--input);color:var(--text);font:inherit;font-size:14px;outline:none}.cset select option{background:var(--dlg)}
 .cinfo{gap:0}.cinfo>div{align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);line-height:1.35}.cinfo>div:last-child{border-bottom:0}.cinfo>div>span{flex:1 1 45%;min-width:0}.cinfo>div>b{flex:0 1 auto;max-width:62%;text-align:right;overflow-wrap:anywhere}.cinfo>div>b small{display:block;font-size:12px;margin-top:2px}
 .cstat>div{display:block;padding:12px;border:1px solid var(--line);min-width:0}.cstat>div>b{line-height:1.2;margin-bottom:3px}.cstat>div>b.sm{font-size:15px!important}.cstat>div>span{display:block;line-height:1.3}
@@ -1457,6 +1458,9 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
             <label>Обычная длина цикла, дней<input type="number" id="cycLen" class="numin" min="20" max="45"></label>
             <label>Длительность месячных, дней<input type="number" id="cycPer" class="numin" min="2" max="10"></label>
             <label>Напоминать за 2 дня до месячных<input type="checkbox" class="tog" id="cycRem"></label>
+            <label><span>🧠 Умный прогноз<small>Длина цикла считается сама по вашим отметкам — чем больше записей, тем точнее. Выключено — берётся «Обычная длина цикла».</small></span><input type="checkbox" class="tog" id="cycSmart"></label>
+            <label><span>🚫 Не учитывать нерегулярные циклы<small>Слишком короткие или длинные циклы (сбой, стресс, болезнь) не портят прогноз.</small></span><input type="checkbox" class="tog" id="cycIrr"></label>
+            <small class="cpinfo" id="cycPInfo"></small>
             <label>Показывать фертильные дни и овуляцию<input type="checkbox" class="tog" id="cycFert"></label>
             <label>Лютеиновая фаза, дней (от овуляции до месячных)<input type="number" id="cycLut" class="numin" min="10" max="16"></label>
             <label>Уведомлять о смене фазы цикла<input type="checkbox" class="tog" id="cycPhn"></label>
@@ -1853,7 +1857,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.15',APP_DATE='10.11.2026';
+const APP_VER='3.16',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4223,7 +4227,7 @@ const CMUC=['dry','sticky','creamy','watery','egg'],CMUCN={dry:'Сухие',stic
 const cycHas=d=>!!(d.i||d.m||d.s.length||d.t||d.f||d.pt||d.mu||d.w!==''||d.tp!==''||d.wa||d.en||(d.sl!==''&&d.sl!=null)||(d.ac&&d.ac.length)||d.pl||d.lh);
 const CSYM=['Боли внизу живота','Головная боль','Грудь','Усталость','Тяга к сладкому','Акне','Вздутие','Обильные','Скудные','Спазмы','Тошнота','Боль в спине','Бессонница','Отёки','Головокружение','Раздражительность','Тревожность','Плаксивость','Сильный аппетит','Высокое либидо','Низкое либидо','Запор','Диарея','Мажущие выделения']; /*i18n:keep*/
 const CACT=['🏃 Спорт','🚶 Прогулка','🧘 Йога','🏊 Плавание','💃 Танцы','🚴 Велосипед','🧹 Дела по дому']; /*i18n:keep*/
-let cyc=(()=>{const x=load('cal.cyc',{})||{},o={per:okDays(x.per).filter((v,i,a)=>a.indexOf(v)===i).sort(),day:{},len:num(x.len,20,45,28),plen:num(x.plen,2,10,5),rem:x.rem!==false,fert:x.fert!==false,lut:num(x.lut,10,16,14),phn:x.phn!==false,pill:{on:!!(x.pill&&x.pill.on),t:x.pill&&/^([01]\d|2[0-3]):[0-5]\d$/.test(x.pill.t)?x.pill.t:'21:00'},goal:x.goal==='conceive'?'conceive':'track',prof:{},preg:{on:false,lmp:'',conc:'',birth:''}};
+let cyc=(()=>{const x=load('cal.cyc',{})||{},o={per:okDays(x.per).filter((v,i,a)=>a.indexOf(v)===i).sort(),day:{},len:num(x.len,20,45,28),plen:num(x.plen,2,10,5),rem:x.rem!==false,fert:x.fert!==false,lut:num(x.lut,10,16,14),phn:x.phn!==false,pill:{on:!!(x.pill&&x.pill.on),t:x.pill&&/^([01]\d|2[0-3]):[0-5]\d$/.test(x.pill.t)?x.pill.t:'21:00'},goal:x.goal==='conceive'?'conceive':'track',smart:x.smart!==false,irr:x.irr!==false,prof:{},preg:{on:false,lmp:'',conc:'',birth:''}};
   {const q=x.prof&&typeof x.prof==='object'?x.prof:{};o.prof={birth:RX.date.test(q.birth)?q.birth:'',h:num(q.h,0,230,''),w:num(q.w,0,300,''),contr:str(q.contr,120),ill:str(q.ill,1500),meds:str(q.meds,1500),all:str(q.all,600),blood:str(q.blood,20),hist:str(q.hist,800),doc:str(q.doc,200)}}
   {const g=x.preg&&typeof x.preg==='object'?x.preg:{},dt=v=>RX.date.test(v)?v:'';o.preg={on:!!g.on,lmp:dt(g.lmp),conc:dt(g.conc),birth:dt(g.birth)}}
   if(x.day&&typeof x.day==='object')for(const k in x.day){const d=x.day[k];if(!RX.date.test(k)||!d||typeof d!=='object')continue;const v={i:[0,1,2].includes(d.i)?d.i:0,m:CMOOD.includes(d.m)?d.m:'',s:Array.isArray(d.s)?d.s.filter(z=>CSYM.includes(z)):[],t:str(d.t,500),f:[1,2,3,4].includes(d.f)?d.f:0,pt:CPT[d.pt]?d.pt:'',mu:CMUC.includes(d.mu)?d.mu:'',w:num(d.w,20,300,''),tp:num(d.tp,34,43,''),wa:num(d.wa,0,6000,0),en:[1,2,3,4,5].includes(d.en)?d.en:0,sl:num(d.sl,0,24,''),ac:Array.isArray(d.ac)?d.ac.filter(z=>CACT.includes(z)):[],pl:d.pl===1?1:0,lh:d.lh==='pos'||d.lh==='neg'?d.lh:''};if(cycHas(v))o.day[k]=v}
@@ -4237,8 +4241,13 @@ function cycCalc(){
   per.forEach((k,i)=>{if(!i||diffD(per[i-1],k)>1){all.push(k);allLens.push(1)}else allLens[allLens.length-1]++});
   // месячные, отмеченные на будущее, — это ожидание, а не прошедший цикл
   const starts=all.filter(k=>k<=today0),lens=allLens.slice(0,starts.length),fut=all.filter(k=>k>today0);
-  const gaps=starts.slice(1).map((k,i)=>diffD(starts[i],k)).filter(g=>g>=20&&g<=45).slice(-6);
-  const avg=gaps.length?Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length):cyc.len;
+  // длины прошлых циклов; «умный прогноз» — средняя по отметкам, иначе обычная длина из настроек;
+  // «не учитывать нерегулярные» — циклы, которые сильно (больше 7 дней) отличаются от обычного для вас, в среднее не идут
+  const gAll=starts.slice(1).map((k,i)=>diffD(starts[i],k)).filter(g=>g>=15&&g<=60).slice(-12);
+  let gaps=cyc.irr?gAll.filter(g=>g>=20&&g<=45):gAll;
+  if(cyc.irr&&gaps.length>=3){const s=[...gaps].sort((a,b)=>a-b),med=s[s.length>>1];gaps=gaps.filter(g=>Math.abs(g-med)<=7)}
+  gaps=gaps.slice(-6);const ign=gAll.slice(-6).filter(g=>!gaps.includes(g)).length;
+  const avg=cyc.smart&&gaps.length?Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length):cyc.len;
   const plen=lens.length?Math.round(lens.slice(-6).reduce((a,b)=>a+b,0)/Math.min(6,lens.length)):cyc.plen;
   const today=ymd(new Date()),last=starts[starts.length-1]||null;
   let next=null,late=0;
@@ -4250,7 +4259,7 @@ function cycCalc(){
   // прошлые циклы: овуляция — за лютеиновую фазу до начала следующих месячных (по отмеченным датам), окно — 5 дней до и день после
   for(let i=0;i+1<starts.length;i++){const g=diffD(starts[i],starts[i+1]);if(g<18||g>50)continue;const o=addD(starts[i+1],-cyc.lut);if(o<=starts[i])continue;ov.add(o);for(let j=-5;j<=1;j++){const f=addD(o,j);if(f>starts[i]&&f<starts[i+1])fert.add(f)}}
   const spread=gaps.length>=2?Math.min(10,Math.max(...gaps)-Math.min(...gaps)):null;
-  return{starts,lens,avg,plen,last,next,late,pred,fert,ov,today,spread,dayN:last&&last<=today?diffD(last,today)+1:null}
+  return{starts,lens,avg,plen,last,next,late,pred,fert,ov,today,spread,gaps,gAll,ign,dayN:last&&last<=today?diffD(last,today)+1:null}
 }
 function cycRender(){
   const lock=!isPro();$('#cycLock').hidden=!lock;$('#cycBody').hidden=lock;
@@ -4282,7 +4291,8 @@ function cycRender(){
     h+=`<button class="${cls.join(' ')}" data-cd="${k}">${ph&&d.getMonth()===v.getMonth()?`<span class="cn">${ph.n}</span>`:''}${ic}${d.getDate()}${info.i?'<i>❤️</i>':info.m?`<i>${info.m}</i>`:''}</button>`}
   $('#cycGrid').innerHTML=h;
   cycDayPaint();pregPaint();dosPaint();
-  $('#cycLen').value=cyc.len;$('#cycPer').value=cyc.plen;$('#cycRem').checked=cyc.rem;$('#cycFert').checked=cyc.fert;$('#cycLut').value=cyc.lut;$('#cycPhn').checked=cyc.phn;$('#cycPill').checked=cyc.pill.on;$('#cycPillT').value=cyc.pill.t;$('#cycGoal').value=cyc.goal;
+  $('#cycLen').value=cyc.len;$('#cycPer').value=cyc.plen;$('#cycRem').checked=cyc.rem;$('#cycFert').checked=cyc.fert;$('#cycLut').value=cyc.lut;$('#cycPhn').checked=cyc.phn;$('#cycPill').checked=cyc.pill.on;$('#cycPillT').value=cyc.pill.t;$('#cycGoal').value=cyc.goal;$('#cycSmart').checked=cyc.smart;$('#cycIrr').checked=cyc.irr;$('#cycLen').disabled=false;
+  {const c2=cycCalc(),el=$('#cycPInfo');if(el)el.textContent=!cyc.smart?T`Прогноз по обычной длине цикла: ${cyc.len} дн.`:c2.gaps.length?T`Прогноз: цикл ~${c2.avg} дн. — по ${c2.gaps.length} ${plural(c2.gaps.length,T('циклу'),T('циклам'),T('циклам'))} (${Math.min(...c2.gaps)}–${Math.max(...c2.gaps)} дн.)`+(c2.ign?T` · не учтено нерегулярных: ${c2.ign}`:''):T`Пока мало отметок — прогноз по обычной длине: ${cyc.len} дн. Отметьте 2–3 цикла, и он станет точнее.`}
 }
 
 // ---- фазы цикла ----
@@ -4434,6 +4444,8 @@ $('#cycLen').onchange=e=>{cyc.len=num(e.target.value,20,45,28);cycSave();cycRend
 $('#cycPer').onchange=e=>{cyc.plen=num(e.target.value,2,10,5);cycSave();cycRender()};
 $('#cycRem').onchange=e=>{cyc.rem=e.target.checked;cycSave()};
 $('#cycFert').onchange=e=>{cyc.fert=e.target.checked;cycSave();cycRender()};
+$('#cycSmart').onchange=e=>{cyc.smart=e.target.checked;cycSave();cycRender()};
+$('#cycIrr').onchange=e=>{cyc.irr=e.target.checked;cycSave();cycRender()};
 $('#cycLut').onchange=e=>{cyc.lut=num(e.target.value,10,16,14);cycSave();cycRender()};
 $('#cycPhn').onchange=e=>{cyc.phn=e.target.checked;cycSave()};
 $('#cycPill').onchange=e=>{cyc.pill.on=e.target.checked;cycSave();cycRender();if(cyc.pill.on)toast(T`💊 Напомню каждый день в ${cyc.pill.t}`)};

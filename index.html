@@ -1176,7 +1176,8 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
-.famc{display:grid;gap:10px}.famh{display:grid;gap:3px}.famh small{color:var(--mut);font-size:12.5px;line-height:1.4}.famrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.famrow input{flex:1 1 180px;min-width:0;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 10px;font:inherit;font-size:14px}
+.famc{display:grid;gap:10px}.fammem{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.fammem span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:13px}.fammem span.me{border-color:var(--acc)}.fammem i{font-style:normal;font-weight:800;font-size:12px;min-width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:#fff}
+.famjn{width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--text);font:inherit;font-size:15px}.famh{display:grid;gap:3px}.famh small{color:var(--mut);font-size:12.5px;line-height:1.4}.famrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.famrow input{flex:1 1 180px;min-width:0;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 10px;font:inherit;font-size:14px}
 .fampp{grid-column:1/-1;display:flex!important;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut)}.fampp em{font-style:normal;font-weight:700}.msum .fampp b{display:inline;font-size:13px}.msum .fampp span{font-size:13px}
 .msum b{white-space:nowrap}@media(max-width:760px){.msum b{font-size:clamp(12px,4vw,16px)!important;overflow:visible!important;text-overflow:clip!important;letter-spacing:-.3px}}.mwho{color:var(--acc2)!important}
 #yP{white-space:pre-line}
@@ -1882,7 +1883,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.28',APP_DATE='10.11.2026';
+const APP_VER='3.29',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4590,7 +4591,7 @@ function monRender(){
   const lock=!isPro();$('#monLock').hidden=!lock;$('#monBody').hidden=lock;
   if(lock){$('#monLock').innerHTML=T`<div class="big">💰</div><h3>Доходы и расходы</h3><p>Записывайте, сколько заработали и сколько потратили — Gemday покажет итог за месяц и год и куда ушли деньги. Чеки и выписки можно просто сфотографировать — бот впишет сам.</p><button class="cta" id="monTry">💎 Попробовать Gemday Pro</button>`;$('#monTry').onclick=proShow;return}
   famPaint();
-  const famOn=fam&&monWho==='fam',SRC=famOn?mlog.map(x=>({...x,who:fam.name,mine:1})).concat(Object.values(famLog).flatMap(v=>v.list.map(x=>({...x,who:v.who})))):mlog;
+  const famOn=fam&&monWho==='fam',SRC=famOn?mlog.map(x=>({...x,who:famLabel(devId),mine:1})).concat(Object.entries(famLog).flatMap(([dev,v])=>v.list.map(x=>({...x,who:famLabel(dev)})))):mlog;
   const[a,b]=monRange(),L=SRC.filter(x=>x.d>=a&&x.d<=b).sort((x,y)=>y.d.localeCompare(x.d)),cur=' '+esc(settings.cur);
   $('#monTitle').textContent=monP==='m'?MONTHS[monRef.getMonth()]+' '+monRef.getFullYear():String(monRef.getFullYear());
   $$('#monPer button').forEach(x=>x.classList.toggle('on',x.dataset.mp===monP));
@@ -4610,13 +4611,19 @@ $('#monNext').onclick=()=>{monP==='m'?monRef.setMonth(monRef.getMonth()+1):monRe
 function moneyAdd(list){const add=cleanList(list,cleanMoney);mlog.push(...add);saveMoney();if($('#v-money').classList.contains('on'))monRender();famPush();return add}
 // ======== Семейный бюджет: только доходы и расходы, общие с семьёй (зашифровано, через ntfy.sh) ========
 // каждое устройство отправляет СВОЙ список целиком; чужие списки хранятся отдельно (cal.famLog) и показываются в режиме «Семья»
-let fam=(()=>{const x=load('cal.fam',null);return x&&/^crys-fam-[a-z0-9]{20}$/.test(x.topic)&&/^[A-Za-z0-9_-]{43}$/.test(x.key)?{topic:x.topic,key:x.key,name:str(x.name,40)||T('Я'),last:/^[A-Za-z0-9]{1,20}$/.test(x.last||'')?x.last:''}:null})();
-let famLog=(()=>{const o=load('cal.famLog',{})||{},r={};for(const d of Object.keys(o)){if(!/^[a-z0-9]{12}$/.test(d)||d===devId)continue;const v=o[d];if(!v||typeof v!=='object')continue;r[d]={who:str(v.who,40)||'?',t:+v.t||0,list:cleanList(Array.isArray(v.list)?v.list:[],cleanMoney).slice(0,5000)}}return r})();
+let fam=(()=>{const x=load('cal.fam',null);return x&&/^crys-fam-[a-z0-9]{20}$/.test(x.topic)&&/^[A-Za-z0-9_-]{43}$/.test(x.key)?{topic:x.topic,key:x.key,name:str(x.name,40)==='Я'?'':str(x.name,40),j:+x.j>0?+x.j:Date.now(),last:/^[A-Za-z0-9]{1,20}$/.test(x.last||'')?x.last:''}:null})();
+let famLog=(()=>{const o=load('cal.famLog',{})||{},r={};for(const d of Object.keys(o)){if(!/^[a-z0-9]{12}$/.test(d)||d===devId)continue;const v=o[d];if(!v||typeof v!=='object')continue;r[d]={who:str(v.who,40)==='Я'?'':str(v.who,40),j:+v.j>0?+v.j:+v.t||0,t:+v.t||0,list:cleanList(Array.isArray(v.list)?v.list:[],cleanMoney).slice(0,5000)}}return r})();
+// участники по порядку вступления: «1. Саша (вы)», «2. Мама», без имени — «Участник 3»
+function famMembers(){if(!fam)return[];const L=[{dev:devId,who:fam.name,j:fam.j,me:1},...Object.entries(famLog).map(([dev,v])=>({dev,who:v.who,j:v.j||v.t}))].sort((a,b)=>a.j-b.j||a.dev.localeCompare(b.dev));
+  L.forEach((m,i)=>{m.n=i+1;m.label=(m.who||T`Участник ${i+1}`)});return L}
+const famLabel=dev=>{const m=famMembers().find(x=>x.dev===dev);return m?m.n+' · '+m.label:'?'};
 let monWho='me';
 const famSave=()=>{save('cal.fam',fam);save('cal.famLog',famLog)};
 async function famPush(force){if(!fam||!navigator.onLine)return;const sig=JSON.stringify(mlog)+'|'+fam.name;if(!force&&sig===famPush.sig)return;
   if(!force&&Date.now()-(famPush.t||0)<60000){clearTimeout(famPush.h);famPush.h=setTimeout(()=>famPush(),61000);return} // не чаще раза в минуту
-  famPush.t=Date.now();try{await relayPut(fam.topic,await enc(await zipStr(JSON.stringify({v:1,dev:devId,who:fam.name,t:Date.now(),list:mlog})),unb64u(fam.key)),'fam');famPush.sig=sig}catch(e){}}
+  famPush.t=Date.now();try{await relayPut(fam.topic,await enc(await zipStr(JSON.stringify({v:1,dev:devId,who:fam.name,j:fam.j,t:Date.now(),list:mlog})),unb64u(fam.key)),'fam');famPush.sig=sig}catch(e){}}
+// пока программа открыта — слушаем семью: новый участник и его записи появляются сразу, а не через минуту
+let famES=null;function famListen(){try{if(famES){famES.close();famES=null}if(!fam||!window.EventSource)return;famES=new EventSource(`${RELAY}${fam.topic}/sse`);famES.onmessage=()=>{clearTimeout(famListen.t);famListen.t=setTimeout(famPull,700)}}catch(e){}}
 function famReq(){try{if(fam&&navigator.onLine)fetch(`${RELAY}${fam.topic}?tags=famreq`,{method:'PUT',body:'r.'+devId}).catch(()=>{})}catch(e){}}
 async function famPull(){if(!fam||!navigator.onLine||famPull.busy)return;famPull.busy=1;
   try{const r=await fetch(`${RELAY}${fam.topic}/json?poll=1&since=${fam.last||'12h'}`);if(!r.ok)return;const raw=unb64u(fam.key),files=[];let last=fam.last,ch=false;
@@ -4625,25 +4632,30 @@ async function famPull(){if(!fam||!navigator.onLine||famPull.busy)return;famPull
       if(Array.isArray(m.tags)&&m.tags.includes('fam')){const a=/\/file\/([A-Za-z0-9]+)\.bin$/.exec(m.attachment&&m.attachment.url||'');if(a)files.push(a[1])}}
     for(const id of files.reverse()){let p;try{p=JSON.parse(await zipStr(await relayGet(id,raw),true))}catch(e){continue}
       if(!p||typeof p!=='object'||p.dev===devId||!/^[a-z0-9]{12}$/.test(p.dev||''))continue;const cur=famLog[p.dev];if(cur&&cur.t>=+p.t)continue;
-      famLog[p.dev]={who:str(p.who,40)||'?',t:+p.t||Date.now(),list:cleanList(Array.isArray(p.list)?p.list:[],cleanMoney).slice(0,5000)};ch=true}
-    fam.last=last;famSave();if(ch&&$('#v-money').classList.contains('on'))monRender()}catch(e){}finally{famPull.busy=0}}
-function famName(){const v=($('#famName')&&$('#famName').value||'').trim().slice(0,40);return v||(fam&&fam.name)||T('Я')}
+      famLog[p.dev]={who:str(p.who,40)==='Я'?'':str(p.who,40),j:+p.j>0?+p.j:(cur&&cur.j)||+p.t||Date.now(),t:+p.t||Date.now(),list:cleanList(Array.isArray(p.list)?p.list:[],cleanMoney).slice(0,5000)};ch=true}
+    fam.last=last;famSave();if(ch){if($('#v-money').classList.contains('on'))monRender();else famPaint()}}catch(e){}finally{famPull.busy=0}}
+function famName(){const v=($('#famName')&&$('#famName').value||'').trim().slice(0,40);return v||(fam&&fam.name)||''}
 function famPaint(){const el=$('#famBox');if(!el)return;
   if(!fam){el.innerHTML=`<div class="famh"><b>👪 ${T('Семейный бюджет')}</b><small>${T('Общие доходы и расходы с семьёй: каждый вписывает своё, итоги — общие. Календарь, заметки и цикл остаются личными. Передаётся зашифрованно.')}</small></div><div class="famrow"><input id="famName" maxlength="40" placeholder="${esc(T('Ваше имя (например: Саша)'))}"><button class="cta" id="famNew" type="button">${T('Создать семью')}</button><button class="pill" id="famJoin" type="button">📷 ${T('Присоединиться по QR')}</button></div>`;
     $('#famNew').onclick=famCreate;$('#famJoin').onclick=()=>{try{localStorage.setItem('cal.famPendingName',famName())}catch(e){}scanOpen(isPhone?'environment':'user')};return}
-  const mem=[fam.name+' '+T('(вы)'),...Object.values(famLog).map(v=>v.who)];
-  el.innerHTML=`<div class="famh"><b>👪 ${T('Семья')}: ${mem.length} ${plural(mem.length,T('участник'),T('участника'),T('участников'))}</b><small>${mem.map(esc).join(' · ')}</small></div><div class="famrow"><span class="mtype" id="famWho"><button data-fw="me" class="${monWho==='me'?'on':''}">${T('Мои')}</button><button data-fw="fam" class="${monWho==='fam'?'on':''}">👪 ${T('Семья')}</button></span><button class="pill" id="famInv" type="button">➕ ${T('Пригласить (QR)')}</button><button class="pill" id="famSync" type="button">🔄</button><button class="pill" id="famLeave" type="button">${T('Выйти')}</button></div>`;
+  const mem=famMembers();
+  el.innerHTML=`<div class="famh"><b>👪 ${T('Семья')}: ${mem.length} ${plural(mem.length,T('участник'),T('участника'),T('участников'))}</b><div class="fammem">${mem.map(m=>`<span class="${m.me?'me':''}"><i>${m.n}</i>${esc(m.label)}${m.me?' '+T('(вы)'):''}</span>`).join('')}</div></div>
+    <div class="famrow"><input id="famMe" maxlength="40" value="${esc(fam.name)}" placeholder="${esc(T`Ваше имя (сейчас: Участник ${(mem.find(m=>m.me)||{}).n||1})`)}"><button class="pill" id="famMeOk" type="button">✏️ ${T('Сохранить имя')}</button></div><div class="famrow"><span class="mtype" id="famWho"><button data-fw="me" class="${monWho==='me'?'on':''}">${T('Мои')}</button><button data-fw="fam" class="${monWho==='fam'?'on':''}">👪 ${T('Семья')}</button></span><button class="pill" id="famInv" type="button">➕ ${T('Пригласить (QR)')}</button><button class="pill" id="famSync" type="button">🔄</button><button class="pill" id="famLeave" type="button">${T('Выйти')}</button></div>`;
   $('#famWho').onclick=e=>{const b=e.target.closest('[data-fw]');if(b){monWho=b.dataset.fw;monRender()}};
+  $('#famMeOk').onclick=()=>{fam.name=str($('#famMe').value.trim(),40);famSave();famPush.sig=null;famPush(true);monRender();toast(T('✓ Имя сохранено — семья увидит его'))};
   $('#famInv').onclick=famInvite;$('#famSync').onclick=()=>{toast(T('🔄 Обновляю семейный бюджет…'));famReq();famPush(true);setTimeout(famPull,4000);setTimeout(famPull,12000)};
-  $('#famLeave').onclick=()=>yShow(T('Выйти из семейного бюджета?'),T('Чужие записи пропадут с этого устройства, ваши останутся. Вернуться можно по QR-коду.'),[{t:T('Выйти'),cta:1,on:()=>{fam=null;famLog={};monWho='me';try{localStorage.removeItem('cal.fam');localStorage.removeItem('cal.famLog')}catch(e){}monRender()}},{t:T('Отмена')}])}
-function famCreate(){fam={topic:'crys-fam-'+rnd(20),key:b64u(crypto.getRandomValues(new Uint8Array(32))),name:famName(),last:''};famLog={};famSave();famPush(true);monWho='fam';monRender();famInvite()}
+  $('#famLeave').onclick=()=>yShow(T('Выйти из семейного бюджета?'),T('Чужие записи пропадут с этого устройства, ваши останутся. Вернуться можно по QR-коду.'),[{t:T('Выйти'),cta:1,on:()=>{fam=null;famLog={};monWho='me';famListen();try{localStorage.removeItem('cal.fam');localStorage.removeItem('cal.famLog')}catch(e){}monRender()}},{t:T('Отмена')}])}
+function famCreate(){fam={topic:'crys-fam-'+rnd(20),key:b64u(crypto.getRandomValues(new Uint8Array(32))),name:famName(),j:Date.now(),last:''};famLog={};famSave();famListen();famPush(true);monWho='fam';monRender();famInvite()}
 function famInvite(){if(!fam)return;const u=`${SYNC_URL}#fam=${fam.topic}.${fam.key}`;try{const q=qrcode(0,'M');q.addData(u,'Byte');q.make();const n=q.getModuleCount(),m=4,px=Math.max(4,Math.floor(560/(n+m*2))),cv=$('#famCv'),g=cv.getContext('2d');cv.width=cv.height=(n+m*2)*px;g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.fillStyle='#000';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))g.fillRect((k+m)*px,(r+m)*px,px,px)}catch(e){}$('#famdlg').showModal()}
 // вступить — только после подтверждения (сам код/ссылка ничего не делает)
 function famJoinAsk(v){const m=/^(crys-fam-[a-z0-9]{20})\.([A-Za-z0-9_-]{43})$/.exec(v||'');if(!m)return yShow(T('QR-код не распознан'),T('Попросите показать код семьи ещё раз: Доходы и расходы → Семья → «Пригласить».'),[{t:T('Закрыть')}]);
   if(fam&&fam.topic===m[1])return toast(T('Вы уже в этой семье'));
   let nm='';try{nm=localStorage.getItem('cal.famPendingName')||''}catch(e){}
-  yShow(T('👪 Присоединиться к семейному бюджету?'),T('Ваши доходы и расходы будут видны участникам этой семьи (зашифрованно), а вы увидите их записи. Календарь, заметки и цикл не передаются. Соглашайтесь, только если код показал член вашей семьи.'),[{t:T('👪 Да, присоединиться'),cta:1,on:()=>{fam={topic:m[1],key:m[2],name:str(nm,40)||T('Я'),last:''};famLog={};famSave();try{localStorage.removeItem('cal.famPendingName')}catch(e){}famReq();famPush(true);setTimeout(famPull,4000);setTimeout(famPull,12000);monWho='fam';showView('money');toast(T('👪 Вы в семейном бюджете'))}},{t:T('Отмена')}])}
+  yShow(T('👪 Присоединиться к семейному бюджету?'),T('Ваши доходы и расходы будут видны участникам этой семьи (зашифрованно), а вы увидите их записи. Календарь, заметки и цикл не передаются. Соглашайтесь, только если код показал член вашей семьи.'),[{t:T('👪 Да, присоединиться'),cta:1,on:()=>{const nn=($('#famJoinName')&&$('#famJoinName').value.trim())||nm;fam={topic:m[1],key:m[2],name:str(nn,40),j:Date.now(),last:''};famLog={};famSave();try{localStorage.removeItem('cal.famPendingName')}catch(e){}famListen();famReq();famPush(true);setTimeout(famPull,2500);setTimeout(famPull,8000);monWho='fam';showView('money');toast(T('👪 Вы в семейном бюджете'))}},{t:T('Отмена')}]);
+  // поле для имени прямо в окне — чтобы семья видела «Мама», а не «Участник 2»
+  {const inp=document.createElement('input');inp.id='famJoinName';inp.maxLength=40;inp.value=nm||'';inp.placeholder=T('Ваше имя (например: Мама)');inp.className='famjn';$('#yB').prepend(inp)}}
 $('#famX').onclick=()=>$('#famdlg').close();
+addEventListener('load',()=>setTimeout(famListen,2500));
 // раз в минуту: забрать чужое и отправить своё, если прошлая отправка не дошла (сервис бывает перегружен)
 setInterval(()=>{famPull();famPush()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)famPull()});addEventListener('load',()=>setTimeout(()=>{if(fam){famReq();famPull();famPush()}},3000));
 $('#monAdd').onclick=()=>{const a=+$('#monAmt').value;if(!(a>0))return toast(T('Укажите сумму'));moneyAdd([{d:$('#monDate').value||ymd(new Date()),a,t:monT,c:$('#monCat').value,n:$('#monNote').value}]);$('#monAmt').value='';$('#monNote').value='';toast(monT==='in'?T('💰 Доход записан'):T('💸 Расход записан'))};

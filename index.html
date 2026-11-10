@@ -1853,7 +1853,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.14',APP_DATE='10.11.2026';
+const APP_VER='3.15',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4247,6 +4247,8 @@ function cycCalc(){
   const pred=new Set(),fert=new Set(),ov=new Set();
   if(next&&!(pgAct()))for(let c=0;c<4;c++){const s0=addD(next,c*avg);for(let i=0;i<plen;i++)pred.add(addD(s0,i));const o=addD(s0,-cyc.lut);ov.add(o);for(let i=-5;i<=1;i++)fert.add(addD(o,i))}
   if(last){const o=next&&diffD(last,next)>=18&&diffD(last,next)<=50?addD(next,-cyc.lut):addD(last,avg-cyc.lut);ov.add(o);for(let i=-5;i<=1;i++)fert.add(addD(o,i))}
+  // прошлые циклы: овуляция — за лютеиновую фазу до начала следующих месячных (по отмеченным датам), окно — 5 дней до и день после
+  for(let i=0;i+1<starts.length;i++){const g=diffD(starts[i],starts[i+1]);if(g<18||g>50)continue;const o=addD(starts[i+1],-cyc.lut);if(o<=starts[i])continue;ov.add(o);for(let j=-5;j<=1;j++){const f=addD(o,j);if(f>starts[i]&&f<starts[i+1])fert.add(f)}}
   const spread=gaps.length>=2?Math.min(10,Math.max(...gaps)-Math.min(...gaps)):null;
   return{starts,lens,avg,plen,last,next,late,pred,fert,ov,today,spread,dayN:last&&last<=today?diffD(last,today)+1:null}
 }

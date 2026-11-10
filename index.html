@@ -705,7 +705,7 @@ dialog .sub{color:var(--mut);font-size:14px;margin-bottom:12px}
   .chip,.more,.day .hrs,.day::after{display:none}
   .day .bar{width:70%;margin-top:2px}
   .dots{display:flex}
-  .day .n{width:34px;height:34px;font-size:17px}
+  .day .n{width:min(34px,100%);height:34px;font-size:17px}
   /* клетки стали выше — часы работы снова видны */
   .day .top{flex-direction:column;align-items:center;gap:1px;min-width:0;max-width:100%}.day .top .dci,.day .hrs .hp{display:none}
   .day .hrs{display:block!important;font-size:9.5px;line-height:1.1;letter-spacing:-.3px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:clip;margin:0;padding:0;background:none!important}

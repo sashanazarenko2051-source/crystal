@@ -1177,6 +1177,10 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
 #cycPartCard{display:grid;gap:6px}#cycPartCard[hidden]{display:none}#cycPartCard .rch{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:8px}
+.rotsw span small{display:block;color:var(--mut);font-size:12px;font-weight:400;margin-top:2px}.rotbox{display:grid;gap:10px;margin:4px 0 8px}.rotbox[hidden]{display:none}.rotst{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--mut)}.rotst input,.rotd input{background:var(--input);border:1px solid var(--line);color:var(--text);border-radius:var(--rs);padding:6px 8px;font:inherit;font-size:13px}
+.rotwk{border:1px solid var(--line);border-radius:var(--r);padding:10px;display:grid;gap:6px;background:var(--soft)}.rotwk.cur{border-color:var(--acc)}.rotwh{display:flex;align-items:center;gap:8px}.rotwh small{color:var(--acc)}.rotwh .pill{margin-left:auto;padding:4px 8px}
+.rotd{display:grid;grid-template-columns:52px minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px}.rotd small{grid-column:2/-1;color:var(--mut);font-size:12.5px}.rotd button{border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:var(--rs);padding:6px 0;font:inherit;font-size:13px;font-weight:600;cursor:pointer}.rotd.on button{background:color-mix(in srgb,var(--acc) 22%,transparent);border-color:var(--acc);color:var(--text)}.rotd input{min-width:0;width:100%;box-sizing:border-box;padding:6px 4px;text-align:center;font-variant-numeric:tabular-nums}.rotd input::-webkit-calendar-picker-indicator{display:none}@media(max-width:400px){.rotd{grid-template-columns:44px minmax(0,1fr) 8px minmax(0,1fr);gap:4px}}
+.rotbtn{display:flex;flex-wrap:wrap;gap:8px}.rothint{color:var(--mut);font-size:12px;line-height:1.4}
 .famc{display:grid;gap:10px}.fammem{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.fammem span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:13px}.fammem span.me{border-color:var(--acc)}.fammem i{font-style:normal;font-weight:800;font-size:12px;min-width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:#fff}
 .famjn{width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--text);font:inherit;font-size:15px}.famh{display:grid;gap:3px}.famh small{color:var(--mut);font-size:12.5px;line-height:1.4}.famrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.famrow input{flex:1 1 180px;min-width:0;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 10px;font:inherit;font-size:14px}
 .fampp{grid-column:1/-1;display:flex!important;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut)}.fampp em{font-style:normal;font-weight:700}.msum .fampp b{display:inline;font-size:13px}.msum .fampp span{font-size:13px}
@@ -1602,6 +1606,8 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
           <div class="sw"><span>Норма работы в день (часы:минуты, например 8:00 или 10:10)</span><input type="text" id="normIn" class="numin" inputmode="numeric" maxlength="6" placeholder="8:00" style="width:90px;text-align:center"></div>
           <div class="sw"><span>Сон в сутки (часы:минуты, для расчёта из 24 ч)</span><input type="text" id="sleepIn" class="numin" inputmode="numeric" maxlength="6" placeholder="8:00" style="width:90px;text-align:center"></div>
           <div class="sw"><span>📅 Рабочие дни недели (выходные — синим, отпуск в эти дни оплачивается)</span><span class="wdsel" id="setWd"><button type="button" data-w="1">Пн</button><button type="button" data-w="2">Вт</button><button type="button" data-w="3">Ср</button><button type="button" data-w="4">Чт</button><button type="button" data-w="5">Пт</button><button type="button" data-w="6">Сб</button><button type="button" data-w="0">Вс</button></span></div>
+          <div class="sw rotsw"><span>📆 График меняется по неделям<small>Если дни и часы работы каждую неделю разные — до 4 недель по кругу, у каждого дня свои часы</small></span><input type="checkbox" class="tog" id="rotOn"></div>
+          <div id="rotBox" class="rotbox" hidden></div>
           <div class="sw"><span>🏖 Оплата отпуска в час (день отпуска = норма часов)</span><span style="display:flex;gap:6px"><input type="number" id="vacIn" class="numin" min="0" step="any" placeholder="0"></span></div>
           <div class="sw sjobs"><span>💼 Мои работы (названия видны в записях времени)</span><span class="jobin"><input id="job0" maxlength="40"><input id="job1" maxlength="40"><input id="job2" maxlength="40"><input id="job3" maxlength="40"></span></div>
         <div class="sw"><span>Ставка в час (для заработка в отчёте)</span><span style="display:flex;gap:6px"><input type="number" id="rateIn" class="numin" min="0" step="1" placeholder="0"><select id="curIn"><option>Kč</option><option>€</option><option>$</option><option>₴</option><option>₽</option><option>zł</option></select></span></div>
@@ -1885,7 +1891,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.30',APP_DATE='10.11.2026';
+const APP_VER='3.31',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -2020,7 +2026,7 @@ let settings=(()=>{
   o.norm=num(x.norm,.5,24,8);o.sleep=num(x.sleep,0,16,8);o.rate=num(x.rate,0,1e6,0);
   o.cur=['Kč','€','$','₴','₽','zł'].includes(x.cur)?x.cur:'Kč';
   o.theme=typeof x.theme==='string'&&/^\w+$/.test(x.theme)?x.theme:'hud';
-  o.workCat=CATS[x.workCat]?x.workCat:'work';{const J=Array.isArray(x.jobs)?x.jobs:[];o.jobs=[0,1,2,3].map(i=>str(J[i],40)||[T('Основная работа'),T('Подработка'),T('Работа 3'),T('Работа 4')][i])}o.fxMode=typeof x.fxMode==='string'&&/^\w+$/.test(x.fxMode)?x.fxMode:'auto';o.vacPay=num(x.vacPay,0,1e6,0);{const w=Array.isArray(x.workDays)?[...new Set(x.workDays.map(Number).filter(v=>Number.isInteger(v)&&v>=0&&v<=6))]:[];o.workDays=w.length?w.sort():[1,2,3,4,5]}o.melody=typeof x.melody==='string'&&/^\w+$/.test(x.melody)?x.melody:'classic';o.vol=num(x.vol,0,1,.7);o.noBanner=!!x.noBanner;o.hol=typeof x.hol==='string'&&/^[a-z]{2}$|^none$/.test(x.hol)?x.hol:'cz';o.holOrth=x.holOrth!==false;o.lang=LANG;
+  o.workCat=CATS[x.workCat]?x.workCat:'work';{const J=Array.isArray(x.jobs)?x.jobs:[];o.jobs=[0,1,2,3].map(i=>str(J[i],40)||[T('Основная работа'),T('Подработка'),T('Работа 3'),T('Работа 4')][i])}o.fxMode=typeof x.fxMode==='string'&&/^\w+$/.test(x.fxMode)?x.fxMode:'auto';o.vacPay=num(x.vacPay,0,1e6,0);{const r=x.rot&&typeof x.rot==='object'?x.rot:{},tm=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v)?v:'',W=(Array.isArray(r.w)?r.w:[]).slice(0,4).map(wk=>Array.from({length:7},(_,i)=>{const d=Array.isArray(wk)?wk[i]:null;return d&&tm(d.s)&&tm(d.e)?{s:d.s,e:d.e}:null}));o.rot={on:!!r.on&&W.length>0,st:/^\d{4}-\d\d-\d\d$/.test(r.st)?r.st:'',w:W}}{const w=Array.isArray(x.workDays)?[...new Set(x.workDays.map(Number).filter(v=>Number.isInteger(v)&&v>=0&&v<=6))]:[];o.workDays=w.length?w.sort():[1,2,3,4,5]}o.melody=typeof x.melody==='string'&&/^\w+$/.test(x.melody)?x.melody:'classic';o.vol=num(x.vol,0,1,.7);o.noBanner=!!x.noBanner;o.hol=typeof x.hol==='string'&&/^[a-z]{2}$|^none$/.test(x.hol)?x.hol:'cz';o.holOrth=x.holOrth!==false;o.lang=LANG;
   o.workStart=typeof x.workStart==='string'&&!isNaN(Date.parse(x.workStart))?x.workStart:null;
   if(typeof x.shift==='string'&&/^\d\d:\d\d-\d\d:\d\d$/.test(x.shift))o.shift=x.shift;
   return o;
@@ -2253,7 +2259,13 @@ function workMin(n){const s=toMin(n.start),e=toMin(n.end);if(s===null||e===null)
 function fmtDur(min){min=Math.round(min);const h=Math.floor(min/60),m=min%60;return h?T`${h} ч${m?' '+pad(m)+T(' мин'):''}`:T`${m} мин`}
 const fmtDurShort=min=>{min=Math.round(min);const h=Math.floor(min/60),m=min%60;return h?T`${h}ч${m?pad(m):''}`:T`${m}м`};
 const isWd=wd=>settings.workDays.includes(wd);
-const dayKind=(k,wd)=>holOn(k).length||dayCats[k]==='holiday'?'hol':dayCats[k]==='vac'?'vac':!isWd(wd)||dayCats[k]==='off'?'we':'';
+// ---- график по неделям: до 4 недель по кругу, у каждого дня свои часы (или выходной) ----
+const monOf=k=>{const d=parseYmd(k);d.setDate(d.getDate()-(d.getDay()+6)%7);return ymd(d)};
+function rotIdx(k){const r=settings.rot,st=monOf(r.st||ymd(new Date())),n=r.w.length,wk=Math.round((parseYmd(monOf(k))-parseYmd(st))/(7*864e5));return((wk%n)+n)%n}
+// undefined — график выключен (работают «Рабочие дни недели»); null — выходной по графику; {s,e} — рабочий день с часами
+function rotDay(k){const r=settings.rot;if(!r||!r.on||!r.w.length)return undefined;return r.w[rotIdx(k)][(parseYmd(k).getDay()+6)%7]}
+const isWdK=k=>{const r=rotDay(k);return r===undefined?isWd(parseYmd(k).getDay()):!!r};
+const dayKind=(k,wd)=>holOn(k).length||dayCats[k]==='holiday'?'hol':dayCats[k]==='vac'?'vac':!(k?isWdK(k):isWd(wd))||dayCats[k]==='off'?'we':'';
 const isNight=n=>!!(n.start&&n.end&&(n.end<=n.start||n.start>='20:00'||n.start<'05:00'));
 const nightOn=k=>notes.some(n=>n.type==='work'&&catOf(n)==='work'&&n.date===k&&isNight(n));
 const wColOn=k=>{const n=notes.find(n=>n.type==='work'&&catOf(n)==='work'&&n.date===k&&n.color&&n.color.toLowerCase()!=='#ffb547');return n?n.color:''};
@@ -2383,7 +2395,7 @@ function renderCal(){
 }
 $('#grid').onclick=e=>{
   const wk=e.target.closest('.wk');
-  if(wk){const ks=week7(wk.dataset.wk),wb=e.target.closest('[data-wa]');if(wb)wb.dataset.wa==='erase'?eraseTime(ks):fillDays(ks.filter(k=>isWd(parseYmd(k).getDay())));else{if(!multi)startMulti();ks.forEach(k=>multi.add(k));lastPick=ks[6];updPick();render()}return}
+  if(wk){const ks=week7(wk.dataset.wk),wb=e.target.closest('[data-wa]');if(wb)wb.dataset.wa==='erase'?eraseTime(ks):fillDays(ks.filter(k=>isWdK(k)));else{if(!multi)startMulti();ks.forEach(k=>multi.add(k));lastPick=ks[6];updPick();render()}return}
   const el=e.target.closest('.day');if(!el)return;
   if(noClick)return;
   if(multi||e.ctrlKey||e.shiftKey){if(!multi)startMulti();pickClick(el.dataset.day,e.shiftKey);return}
@@ -2460,7 +2472,7 @@ function renderList(){
   $('#dTitle').textContent=`${MONTHS_G[d.getMonth()]} ${d.getFullYear()}`;
   $('#dSub').textContent=WDL[d.getDay()]+' · '+(ns.length?ns.length+' '+plural(ns.length,T('запись'),T('записи'),T('записей')):T('нет записей'))+(wm?T(' · отработано ')+fmtDur(wm):'')+(holOn(sel).length?' · 🎉 '+holOn(sel).map(x=>x.n).join(', '):'');
   renderSum();renderSmart();
-  const vp=vacPayOf(sel),vc=dayCats[sel]==='vac'?T`<div class="vacCard"><b>🏖 Оплачиваемый отпуск</b>${vp?T`<span>${fmtDur(settings.norm*60)} × ${settings.vacPay} ${esc(settings.cur)}/ч = <b>${money(vp)}</b></span>`:holOn(sel).length?T('<span>Праздник — не оплачивается</span>'):!isWd(d.getDay())?T`<span>${WDL[d.getDay()]} — у вас не рабочий день, отпуск не оплачивается</span><button class="pill" data-mkwd="${d.getDay()}" style="margin-top:6px;align-self:flex-start">✓ ${WDL[d.getDay()]} у меня рабочий день</button>`:T('<span>Укажите оплату отпуска в час — в окне записи или в Настройках</span>')}</div>`:'';
+  const vp=vacPayOf(sel),vc=dayCats[sel]==='vac'?T`<div class="vacCard"><b>🏖 Оплачиваемый отпуск</b>${vp?T`<span>${fmtDur(settings.norm*60)} × ${settings.vacPay} ${esc(settings.cur)}/ч = <b>${money(vp)}</b></span>`:holOn(sel).length?T('<span>Праздник — не оплачивается</span>'):!isWdK(ymd(d))?T`<span>${WDL[d.getDay()]} — у вас не рабочий день, отпуск не оплачивается</span><button class="pill" data-mkwd="${d.getDay()}" style="margin-top:6px;align-self:flex-start">✓ ${WDL[d.getDay()]} у меня рабочий день</button>`:T('<span>Укажите оплату отпуска в час — в окне записи или в Настройках</span>')}</div>`:'';
   // время дня (сон, работа, нейтральное, свободное) — одной компактной карточкой
   const wk=ns.filter(n=>n.type==='work').sort((x,y)=>toMin(x.start)-toMin(y.start)),rest=ns.filter(n=>n.type!=='work');
   const dayBox=wk.length?`<div class="note wgrp"><div class="top"><span class="tt">${T('🕒 Распорядок дня')}</span><span class="tm">${fmtDur(wk.reduce((t,n)=>t+workMin(n),0))}</span></div>${wk.map(n=>{const c=CATS[catOf(n)],col=n.color&&catOf(n)==='work'?n.color:c.color,pay=catOf(n)==='work'&&payOf(n)?money(payOf(n)):'';
@@ -2504,7 +2516,7 @@ function renderSum(){
 }
 // ---- быстро: одним нажатием ----
 // время для быстрых кнопок — последнее указанное время работы
-const shift=()=>{
+const shift=k=>{if(k){const r=rotDay(k);if(r)return[r.s,r.e]} // по графику недели — свои часы этого дня
   if(settings.shift)return settings.shift.split('-');
   const w=notes.filter(n=>n.type==='work'&&catOf(n)==='work');
   return w.length?[w[w.length-1].start,w[w.length-1].end]:['09:00','18:00'];
@@ -2532,7 +2544,7 @@ const isoWeek=d=>{const t=new Date(d.getFullYear(),d.getMonth(),d.getDate()+3-(d
 // заполнить дни обычным временем работы (пустые и не выходные)
 function fillDays(ks){
   const[a,z]=shift(),add=[];
-  ks.forEach((k,i)=>{if(!hasWork(k)&&!isOff(k)&&addWork(k,a,z,'work','',i))add.push(notes[notes.length-1])});
+  ks.forEach((k,i)=>{const[a1,z1]=shift(k);if(!hasWork(k)&&!isOff(k)&&addWork(k,a1,z1,'work','',i))add.push(notes[notes.length-1])});
   if(!add.length){toast(T('Эти дни уже заполнены'));return}
   persist();toast(T`💼 Работа ${a}–${z}: ${add.length} ${plural(add.length,T('день'),T('дня'),T('дней'))}`,()=>{notes=notes.filter(n=>!add.includes(n));persist();toast(T('Отменено'))});
 }
@@ -2552,7 +2564,7 @@ function dayAction(m){
   if(m==='erase'){eraseTime([sel]);return}
   if(m==='off'){setDayCat([sel],'off');return}
   if(m==='hours'){hOpen([sel]);return}
-  const[a,z]=shift(),before=notes.length;let msg='';
+  const[a,z]=shift(sel),before=notes.length;let msg='';
   if(m==='full'){addWork(sel,a,z,'work');msg=T`💼 ${dayLabel(sel)}: работа ${a}–${z}`}
   else if(m==='half'){const e2=halfEnd();addWork(sel,a,e2,'work');msg=T`🕐 ${dayLabel(sel)}: работа ${a}–${e2}`}
   else if(m==='copy'){const pv=prevWorkDay(sel);notes.filter(n=>n.type==='work'&&n.date===pv).forEach((n,i)=>addWork(sel,n.start,n.end,catOf(n),n.text,i));msg=T`📋 Как ${dayLabel(pv)}`}
@@ -2560,7 +2572,7 @@ function dayAction(m){
   toast(msg,add.length?()=>{notes=notes.filter(n=>!add.includes(n));persist();toast(T('Отменено'))}:undefined);
 }
 const OFFCATS=['off','vac','sick','holiday'];
-const vacPayOf=k=>dayCats[k]==='vac'&&settings.vacPay>0&&isWd(parseYmd(k).getDay())&&!holOn(k).length?settings.norm*settings.vacPay:0;
+const vacPayOf=k=>dayCats[k]==='vac'&&settings.vacPay>0&&isWdK(k)&&!holOn(k).length?settings.norm*settings.vacPay:0;
 function setDayCat(ks,c){
   const prev=ks.map(k=>[k,dayCats[k]]),D=c&&DAYCATS[c],kset=new Set(ks);
   const rm=OFFCATS.includes(c)?notes.filter(n=>n.type==='work'&&catOf(n)==='work'&&kset.has(n.date)):[];
@@ -2569,7 +2581,7 @@ function setDayCat(ks,c){
   toast(D?`${D.i} ${ks.length>1?ks.length+' '+plural(ks.length,T('день'),T('дня'),T('дней')):dayLabel(ks[0])}: ${D.n}`+(rm.length?T(' · работа убрана'):''):T('Тип дня снят'),()=>{prev.forEach(([k,v])=>{if(v)dayCats[k]=v;else delete dayCats[k]});saveDays();if(rm.length){notes.push(...rm);persist()}else render();toast(T('Отменено'))});
 }
 function renderSmart(){
-  const[a,b]=shift(),w=workOn(sel);
+  const[a,b]=shift(sel),w=workOn(sel);
   const dc=dayCats[sel],qb=(m,on,ic,nm,sub,c)=>`<button class="qd${on?' on':''}" data-sm="${m}" style="--qc:${c}"><i>${ic}</i><b>${nm}</b>${sub?`<small>${sub}</small>`:''}</button>`;
   $('#dmain').innerHTML='<div class="qday">'+qb('qwork',!!w,'💼',T('Рабочий'),w?'✓ '+fmtDurShort(w):`${a}–${b}`,'#ffb547')+qb('qoff',dc==='off','🌴',T('Выходной'),'',DAYCATS.off.c)+qb('qvac',dc==='vac','🏖',T('Отпуск'),vacPayOf(sel)?money(vacPayOf(sel)):'',DAYCATS.vac.c)+'</div>'+T('<button class="qmulti" data-sm="qmulti"><i class="et" style="--ec:var(--acc)">📅</i>Отметить сразу несколько дней</button>')
     +T('<button class="qmulti" data-sm="dset"><i class="et" style="--ec:var(--acc2)">⚙️</i>Настроить день: тип, цвет, время</button>')
@@ -2581,7 +2593,7 @@ $('#daySum').addEventListener('click',e=>{if(e.target.closest('[data-hrs]'))hOpe
 document.addEventListener('focusin',e=>{const t=e.target;if(t.matches?.('input[type=number],.hrow input'))setTimeout(()=>{try{t.select()}catch(_){}},0)});
 $('#dmain').onclick=e=>{const b=e.target.closest('[data-sm]');if(!b)return;if(b.dataset.sm==='dset')return dsOpen();dayAction(b.dataset.sm)};
 let dsJob=0;
-function dsOpen(){const k=sel,[a,z]=shift();$('#dsT').textContent=T('⚙️ Настроить день')+' · '+dayLabel(k);
+function dsOpen(){const k=sel,[a,z]=shift(k);$('#dsT').textContent=T('⚙️ Настроить день')+' · '+dayLabel(k);
   $('#dsCats').innerHTML=`<button type="button" data-dsc="" class="${dayCats[k]?'':'on'}">—</button>`+Object.entries(DAYCATS).map(([q,v])=>`<button type="button" data-dsc="${q}" class="${dayCats[k]===q?'on':''}" style="--cc:${v.c}">${v.i} ${v.n}</button>`).join('');
   $('#dsCols').innerHTML=`<span data-dcl="" class="${dayCol[k]?'':'on'}" title="${T('Без цвета')}">✕</span>`+COLORS.map(c=>`<span data-dcl="${c}" style="background:${c}" class="${dayCol[k]===c?'on':''}"></span>`).join('');
   $('#dsStart').value=a;$('#dsEnd').value=z;dsJob=0;$('#dsJobs').innerHTML=settings.jobs.map((n,i)=>`<button type="button" data-dsj="${i}" style="--cc:${JOBC[i]}" class="${i?'':'on'}">💼 ${esc(n)}</button>`).join('');$('#dsdlg').showModal()}
@@ -2596,7 +2608,7 @@ $('#dsdlg').onclick=e=>{const k=sel,c=e.target.closest('[data-dsc]'),l=e.target.
 // ---- меню по правой кнопке мыши ----
 function openCtx(k,x,y){
   sel=k;render();
-  const[a,z]=shift(),t=timeOn(k),pv=prevWorkDay(k),I=[`<b>${dayLabel(k)}, ${WDL[parseYmd(k).getDay()]}</b>`];
+  const[a,z]=shift(k),t=timeOn(k),pv=prevWorkDay(k),I=[`<b>${dayLabel(k)}, ${WDL[parseYmd(k).getDay()]}</b>`];
   if(!hasWork(k))I.push(`<button data-c="full">💼 ${k>ymd(new Date())?T('Буду работать'):T('Работал')} ${a}–${z}</button>`,T`<button data-c="half">🕐 Полдня ${a}–${halfEnd()}</button>`);
   if(pv&&!t)I.push(T`<button data-c="copy">📋 Как ${dayLabel(pv)}</button>`);
   if(!isOff(k)&&!t)I.push(T('<button data-c="off">🌴 Выходной</button>'));
@@ -2645,7 +2657,7 @@ const parseHM=t=>{t=String(t||'').toLowerCase().replace(/\s+/g,'').replace(',','
 const hmStr=min=>{min=Math.round(min);return min>0?Math.floor(min/60)+':'+pad(min%60):''};
 const hVal=k=>Math.max(0,Math.min(24,parseHM($('#h_'+k).value)));
 // начало и конец работы в этот день (или обычная смена)
-const workSpan=day=>{const w=notes.filter(n=>n.type==='work'&&n.date===day&&catOf(n)==='work');if(!w.length){const[a,z]=shift();return[toMin(a),toMin(z)]}
+const workSpan=day=>{const w=notes.filter(n=>n.type==='work'&&n.date===day&&catOf(n)==='work');if(!w.length){const[a,z]=shift(day);return[toMin(a),toMin(z)]}
   return[Math.min(...w.map(n=>toMin(n.start))),Math.max(...w.map(n=>{const a=toMin(n.start);return a+workMin(n)}))]};
 // нейтральное этого дня: до работы / после работы
 const neutralSplit=day=>{const[S]=workSpan(day),o={nb:[],na:[]};notes.filter(n=>n.type==='work'&&n.date===day&&catOf(n)==='neutral'&&!isBreak(n)).forEach(n=>o[toMin(n.start)<S?'nb':'na'].push(n));return o};
@@ -2790,7 +2802,7 @@ $('#pickBar').onclick=e=>{
   else if(a==='clr'){multi.clear();lastPick=null;updPick();render()}
   else if(a==='wk')add(weekOf(lastPick||sel));
   else if(a==='mo')add(viewDays());
-  else if(a==='wd'){const t=ymd(new Date()),ks=viewDays().filter(k=>isWd(parseYmd(k).getDay())&&k>=t);add(ks);if(!ks.length)toast(T('Будних дней впереди в этом месяце не осталось'))}
+  else if(a==='wd'){const t=ymd(new Date()),ks=viewDays().filter(k=>isWdK(k)&&k>=t);add(ks);if(!ks.length)toast(T('Будних дней впереди в этом месяце не осталось'))}
   else if(a==='tm'){const ks=shownTimeDays();add(ks);if(!ks.length)toast(T('В этом месяце нет записанного времени'))}
   else if(a==='qwork'||a==='qoff'||a==='qvac'){if(!multi.size){toast(T('Сначала выберите дни'));return}const ks=[...multi].sort();
     if(a==='qwork'){let ch=0;ks.forEach(k=>{if(OFFCATS.includes(dayCats[k])){delete dayCats[k];ch++}});if(ch)saveDays();fillDays(ks)}else setDayCat(ks,a==='qoff'?'off':'vac');endMulti()}
@@ -2951,7 +2963,7 @@ function updRange(){
   const ks=[...fSel].sort(),n=ks.length;
   $('#fRangeInfo').textContent=!n?T('⚠ Отметьте хотя бы один день в календарике'):n===1?T`Только на ${dayLabel(ks[0])} · нажмите на другие дни, чтобы добавить`:T`✓ Выбрано ${n} ${plural(n,T('день'),T('дня'),T('дней'))}: `+(n<=8?ks.map(k=>parseYmd(k).getDate()).join(', ')+' '+MONTHS_G[parseYmd(ks[n-1]).getMonth()]:`${dayLabel(ks[0])} — ${dayLabel(ks[n-1])}`);
   {const D=['off','vac','sick','holiday'];$('#fDc').innerHTML=T`<span>Отметить ${n>1?T('выбранные дни'):T('день')}:</span>`+D.map(c=>`<button type="button" data-fdc="${c}" style="--dc:${DAYCATS[c].c}" class="${n&&ks.every(k=>dayCats[k]===c)?'on':''}">${DAYCATS[c].i} ${DAYCATS[c].n}</button>`).join('')+(ks.some(k=>dayCats[k])?T('<button type="button" data-fdc="">✕ Снять</button>'):'')}
-  {const vd=ks.filter(k=>dayCats[k]==='vac'),pd=vd.filter(k=>isWd(parseYmd(k).getDay())&&!holOn(k).length).length;$('#fVac').classList.toggle('on',vd.length>0);if(document.activeElement!==$('#fVacPay'))$('#fVacPay').value=settings.vacPay||'';$('#fVacT').textContent=T`${settings.cur}/ч × ${fmtDurShort(settings.norm*60)}`+(settings.vacPay>0&&pd?T` = ${money(settings.norm*settings.vacPay)} в день`+(pd>1?` · ${pd} ${plural(pd,T('день'),T('дня'),T('дней'))}: ${money(pd*settings.norm*settings.vacPay)}`:''):'')}
+  {const vd=ks.filter(k=>dayCats[k]==='vac'),pd=vd.filter(k=>isWdK(k)&&!holOn(k).length).length;$('#fVac').classList.toggle('on',vd.length>0);if(document.activeElement!==$('#fVacPay'))$('#fVacPay').value=settings.vacPay||'';$('#fVacT').textContent=T`${settings.cur}/ч × ${fmtDurShort(settings.norm*60)}`+(settings.vacPay>0&&pd?T` = ${money(settings.norm*settings.vacPay)} в день`+(pd>1?` · ${pd} ${plural(pd,T('день'),T('дня'),T('дней'))}: ${money(pd*settings.norm*settings.vacPay)}`:''):'')}
   // стереть то, что уже есть в отмеченных днях
   const has=ks.filter(k=>notes.some(x=>x.type===ftype&&x.date===k)).length;
   $('#fErase').hidden=!has;
@@ -3571,7 +3583,25 @@ $('#normIn').value=hToHm(settings.norm);
 $('#normIn').onchange=e=>{const h=hmToH(e.target.value);settings.norm=Math.min(24,Math.max(.5,Number.isFinite(h)&&h>0?h:settings.norm));e.target.value=hToHm(settings.norm);save('cal.settings',settings);render()};
 $('#sleepIn').value=hToHm(settings.sleep);
 $('#sleepIn').onchange=e=>{const h=hmToH(e.target.value);settings.sleep=Math.min(16,Math.max(0,Number.isFinite(h)?h:settings.sleep));e.target.value=hToHm(settings.sleep);save('cal.settings',settings);render()};
-function paintWd(){$$('#setWd [data-w]').forEach(b=>b.classList.toggle('on',settings.workDays.includes(+b.dataset.w)))}paintWd();
+// ---- график по неделям: настройки ----
+function rotWeekFrom(mon){return Array.from({length:7},(_,i)=>{const k=addD(mon,i),w=notes.filter(n=>n.type==='work'&&n.date===k&&catOf(n)==='work'&&n.start&&n.end);if(!w.length)return null;
+  const s=w.map(n=>n.start).sort()[0],e=w.map(n=>n.end).sort().pop();return{s,e}})}
+function rotPaint(){const r=settings.rot,b=$('#rotBox');if(!b)return;$('#rotOn').checked=!!r.on;b.hidden=!r.on;$('#setWd').closest('.sw').hidden=!!r.on;if(!r.on)return;
+  const st=r.st||monOf(ymd(new Date())),cur=rotIdx(ymd(new Date()));
+  b.innerHTML=`<div class="rotst"><span>${T('Неделя 1 начинается с')}</span><input type="date" id="rotSt" value="${st}"></div>`+r.w.map((wk,wi)=>`<div class="rotwk${wi===cur?' cur':''}"><div class="rotwh"><b>${T`Неделя ${wi+1}`}</b>${wi===cur?`<small>${T('— сейчас')}</small>`:''}${r.w.length>1?`<button class="pill" type="button" data-rdel="${wi}" title="${esc(T('Удалить неделю'))}">🗑</button>`:''}</div>`
+    +wk.map((d,i)=>`<div class="rotd${d?' on':''}"><button type="button" data-rd="${wi}.${i}">${WD[i]}</button>${d?`<input type="time" data-rs="${wi}.${i}" value="${d.s}"><span>–</span><input type="time" data-re="${wi}.${i}" value="${d.e}">`:`<small>${T('выходной')}</small>`}</div>`).join('')+`</div>`).join('')
+    +`<div class="rotbtn">${r.w.length<4?`<button class="pill" type="button" id="rotAdd">➕ ${T('Добавить неделю')}</button>`:''}<button class="pill" type="button" id="rotPin">📌 ${T('Закрепить эту неделю')}</button></div><small class="rothint">${T('Недели идут по кругу: 1, 2, … и снова 1. Нажмите на день — рабочий/выходной; у каждого дня свои часы. «Закрепить эту неделю» — берёт, как вы реально работали на этой неделе. Отметка дня в календаре (выходной, отпуск, своё время) важнее графика.')}</small>`}
+function rotSave(){save('cal.settings',settings);rotPaint();render()}
+$('#rotOn').onchange=e=>{const r=settings.rot;r.on=e.target.checked;if(r.on&&!r.w.length){const[a,z]=shift();r.w=[Array.from({length:7},(_,i)=>isWd((i+1)%7)?{s:a,e:z}:null)];r.st=monOf(ymd(new Date()))}rotSave();if(r.on)toast(T('📆 График по неделям включён — настройте недели ниже'))};
+$('#rotBox').addEventListener('click',e=>{const r=settings.rot,d=e.target.closest('[data-rd]'),del=e.target.closest('[data-rdel]');
+  if(d){const[wi,i]=d.dataset.rd.split('.').map(Number);const[a,z]=shift();r.w[wi][i]=r.w[wi][i]?null:{s:a,e:z};rotSave()}
+  else if(del){r.w.splice(+del.dataset.rdel,1);if(!r.w.length)r.on=false;rotSave()}
+  else if(e.target.id==='rotAdd'){r.w.push(r.w[r.w.length-1].map(x=>x&&{...x}));rotSave()}
+  else if(e.target.id==='rotPin'){const wk=rotWeekFrom(monOf(ymd(new Date())));if(!wk.some(Boolean))return toast(T('На этой неделе ещё нет записей работы — отметьте дни в календаре'));const i=rotIdx(ymd(new Date()));r.w[i]=wk;rotSave();toast(T`📌 Неделя ${i+1} теперь как эта неделя`)}});
+$('#rotBox').addEventListener('change',e=>{const r=settings.rot,t=e.target,ok=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+  if(t.id==='rotSt'&&/^\d{4}-\d\d-\d\d$/.test(t.value)){r.st=monOf(t.value);rotSave();return}
+  const k=t.dataset.rs||t.dataset.re;if(!k||!ok(t.value))return;const[wi,i]=k.split('.').map(Number);if(r.w[wi][i]){r.w[wi][i][t.dataset.rs?'s':'e']=t.value;save('cal.settings',settings);render()}});
+function paintWd(){$$('#setWd [data-w]').forEach(b=>b.classList.toggle('on',settings.workDays.includes(+b.dataset.w)))}paintWd();rotPaint();
 $('#setWd').onclick=e=>{const b=e.target.closest('[data-w]');if(!b)return;const w=+b.dataset.w,a=new Set(settings.workDays);a.has(w)?a.delete(w):a.add(w);if(!a.size)return toast(T('Нужен хотя бы один рабочий день'));settings.workDays=[...a].sort();save('cal.settings',settings);paintWd();render()};
 $('#vacIn').value=settings.vacPay||'';$('#vacIn').onchange=e=>{settings.vacPay=Math.max(0,+e.target.value||0);save('cal.settings',settings);render()};
 $('#rateIn').onchange=e=>{settings.rate=Math.max(0,+e.target.value||0);save('cal.settings',settings)};

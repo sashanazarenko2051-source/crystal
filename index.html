@@ -1176,6 +1176,7 @@ body.ispro .brand .wm b::after{content:"PRO";margin-left:6px;font-size:10px;lett
 .pvc .ac a{background:linear-gradient(90deg,#e11d48,#f472b6);border-color:transparent;color:#fff}
 .pvc .ac .unp{flex:0 0 34px}
 .hrs .hp{font-style:normal}
+#cycPartCard{display:grid;gap:6px}#cycPartCard[hidden]{display:none}#cycPartCard .rch{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:8px}
 .famc{display:grid;gap:10px}.fammem{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.fammem span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:13px}.fammem span.me{border-color:var(--acc)}.fammem i{font-style:normal;font-weight:800;font-size:12px;min-width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:#fff}
 .famjn{width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--text);font:inherit;font-size:15px}.famh{display:grid;gap:3px}.famh small{color:var(--mut);font-size:12.5px;line-height:1.4}.famrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.famrow input{flex:1 1 180px;min-width:0;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 10px;font:inherit;font-size:14px}
 .fampp{grid-column:1/-1;display:flex!important;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut)}.fampp em{font-style:normal;font-weight:700}.msum .fampp b{display:inline;font-size:13px}.msum .fampp span{font-size:13px}
@@ -1441,7 +1442,8 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
             </div>
             <div class="ccard cday" id="cycDay"></div>
           </div>
-          <div class="cpart"><button class="cta" id="cycPartner" type="button">💑 Для партнёра: QR-код</button><small>Партнёр наводит камеру телефона — и видит прогноз: месячные, овуляцию, фертильные дни. Только сводка, без заметок и интима.</small></div>
+          <div class="cpart"><button class="cta" id="cycPartner" type="button">💑 Для партнёра: QR-код</button><button class="pill" id="cycScan" type="button">📷 Сканировать QR партнёра</button><small>Партнёр наводит камеру телефона — и видит прогноз: месячные, овуляцию, фертильные дни. Только сводка, без заметок и интима.</small></div>
+          <div class="ccard" id="cycPartCard" hidden></div>
           <div class="cfolds">
           <details class="ccard cfold" id="pgFold"><summary>🤰 Беременность <small id="pgSum"></small></summary>
             <label class="crow">Отслеживать беременность<input type="checkbox" class="tog" id="pgOn"></label>
@@ -1821,9 +1823,9 @@ button:not(:disabled):focus-visible{outline:2px solid var(--acc);outline-offset:
   <div class="dacts" style="justify-content:center;margin-top:10px"><button class="cta" id="ppClose" type="button">Готово</button></div>
 </div></dialog>
 <dialog id="partdlg" class="mdlg"><div class="mde" style="--c:#f472b6;text-align:center;max-width:520px">
-  <h3 style="margin:2px 0 6px">💑 Для партнёра</h3><p style="color:var(--mut);margin:0 0 8px">Наведите камеру телефона на код — откроется текст с прогнозом.</p>
+  <h3 style="margin:2px 0 6px">💑 Для партнёра</h3><p style="color:var(--mut);margin:0 0 8px">Партнёр наводит обычную камеру телефона на код и открывает ссылку — увидит прогноз (приложение не нужно). В Gemday: Цикл и здоровье → «📷 Сканировать QR партнёра».</p>
   <canvas id="partCv" class="qcv" width="10" height="10"></canvas><pre id="partTx" class="parttx"></pre>
-  <div class="dacts" style="justify-content:center;flex-wrap:wrap"><button class="pill" id="partCopy" type="button">📋 Скопировать</button><button class="pill" id="partShare" type="button">📤 Поделиться</button><button class="cta" id="partClose" type="button">Закрыть</button></div>
+  <div class="dacts" style="justify-content:center;flex-wrap:wrap"><button class="pill" id="partLink" type="button">🔗 Скопировать ссылку</button><button class="pill" id="partCopy" type="button">📋 Скопировать</button><button class="pill" id="partShare" type="button">📤 Поделиться</button><button class="cta" id="partClose" type="button">Закрыть</button></div>
 </div></dialog>
 <dialog id="famdlg" class="mdlg"><div class="mde" style="--c:var(--acc2);text-align:center;max-width:520px">
   <h3 style="margin:2px 0 6px">👪 Пригласить в семью</h3><p style="color:var(--mut);margin:0 0 8px">На другом телефоне или ПК: Gemday → Доходы и расходы → «📷 Присоединиться по QR» и наведите камеру на этот код.</p>
@@ -1883,7 +1885,7 @@ function i18nDom(root){
 i18nDom(document.body);document.title=T(document.title);
 // i18n-skip-end
 document.documentElement.style.setProperty('--pk-empty',JSON.stringify(T('Пока ни одного дня')));
-const APP_VER='3.29',APP_DATE='10.11.2026';
+const APP_VER='3.30',APP_DATE='10.11.2026';
 const COLORS=['#7c5cff','#22d3ee','#34d399','#ffb547','#ff5d73','#f472b6','#60a5fa','#b78bff','#fb923c','#2dd4bf','#facc15','#a3e635','#e879f9','#94a3b8','#f8fafc','#ef4444','#f97316','#eab308','#84cc16','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#d946ef','#ec4899','#f43f5e','#a16207','#78716c','#c084fc'];
 const TYPE_COLOR={work:'#ffb547',note:'#22d3ee',rem:'#7c5cff',date:'#ff5d73'};
 const REP={d:T('каждый день'),w:T('каждую неделю'),m:T('каждый месяц'),y:T('каждый год')};
@@ -4135,8 +4137,9 @@ async function scanOpen(face){
     try{const k=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));c.width=v.videoWidth*k|0;c.height=v.videoHeight*k|0;x.drawImage(v,0,0,c.width,c.height);
       const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'dontInvert'});
       if(r&&r.data){const i=r.data.indexOf('#s=');
-        const pi=r.data.indexOf('#n='),fi=r.data.indexOf('#fam=');
-        if(fi>=0){$('#scdlg').close();famJoinAsk(r.data.slice(fi+5))}
+        const pi=r.data.indexOf('#n='),fi=r.data.indexOf('#fam='),ci=r.data.indexOf('#cyc=');
+        if(ci>=0){$('#scdlg').close();partShow(r.data.slice(ci+5))}
+        else if(fi>=0){$('#scdlg').close();famJoinAsk(r.data.slice(fi+5))}
         else if(pi>=0){$('#scdlg').close();p2pJoin(r.data.slice(pi+3))}
         else if(i<0)S.textContent=T('Это не QR-код Gemday');
         else{const res=await syncIn(r.data.slice(i),true);if(res&&res.n)S.textContent=T`✓ Получено ${res.have} из ${res.n} — держите камеру, коды листаются`}}}
@@ -4177,6 +4180,7 @@ function applySync(raw,fromPhone){
   location.reload()}
 async function syncIn(h,quiet){
   if(typeof h!=='string'){h=location.hash;
+    {const cm=/^#cyc=([A-Za-z0-9_-]{10,3000})$/.exec(h);if(cm){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}return partShow(cm[1])}}
     {const fm=/^#fam=([A-Za-z0-9_.-]{20,200})$/.exec(h);if(fm){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}return famJoinAsk(fm[1])}}
     const pm=/^#n=([A-Za-z0-9_.-]{20,200})$/.exec(h);
     if(pm){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
@@ -4371,7 +4375,7 @@ function cycRender(){
   if(pgAct()){const r=pregCalc();if(r)rows.unshift([T('🤰 Беременность'),T`${r.w} нед. ${r.d} дн. · роды ~ ${dayLabel(r.due)}`])}
   if(cyc.fert&&!(pgAct())){const x=chanceOf(c.today,c);if(x)rows.push([T('Вероятность забеременеть'),`<span style="color:${x[1]}">${x[0]}</span>`])}
   if(cyc.fert&&!(pgAct()))rows.push([T('Сегодня'),c.pred.has(c.today)||cyc.per.includes(c.today)?T('🩸 месячные'):c.ov.has(c.today)?T('🟣 овуляция'):c.fert.has(c.today)?T('🟢 фертильный день'):T('обычный день')]);
-  $('#cycInfo').innerHTML=rows.map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');
+  $('#cycInfo').innerHTML=rows.map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');try{partPaint()}catch(e){}
   const mon=new Date().getMonth(),y=new Date().getFullYear(),intM=Object.entries(cyc.day).filter(([k,v])=>v.i&&parseYmd(k).getMonth()===mon&&parseYmd(k).getFullYear()===y).length;
   $('#cycStat').innerHTML=T`<div><b>${c.avg}${c.spread?' ±'+Math.ceil(c.spread/2):''}</b><span>средний цикл, дней</span></div><div><b>${c.plen}</b><span>месячные, дней</span></div><div><b>${intM}</b><span>❤️ интим в этом месяце</span></div>`+cycTiles(c,ovNext);tileDeco($('#cycStat'),['🔁','🩸']);
   $('#cycHist').innerHTML=c.starts.length?`<small class="cbcap">${T('Анализ циклов (последние 6)')}</small>`+cycBars(c):`<div>${T('Отметьте дни месячных в календаре — прогноз появится сам.')}</div>`;
@@ -4469,7 +4473,27 @@ function partText(){const c=cycCalc(),L=['💑 Gemday · '+T('цикл'),T`на 
   if(cyc.fert&&ovN){const f=[...c.fert].filter(k=>k>=addD(ovN,-5)&&k<=addD(ovN,1)).sort();L.push(T`🟣 Овуляция: ${dayLabel(ovN)}`);if(f.length)L.push(T`🌱 Фертильные дни: ${dayLabel(f[0])} – ${dayLabel(f[f.length-1])}`)}
   {const x=chanceOf(c.today,c);if(x&&cyc.fert)L.push(T`Шанс забеременеть сегодня: ${x[0].toLowerCase()}`)}
   L.push('',T('Будь рядом и бережен в эти дни ❤️'));return L.join('\n')}
-$('#cycPartner').onclick=()=>{const t=partText();$('#partTx').textContent=t;try{const q=qrcode(0,'M');qrcode.stringToBytes=qrcode.stringToBytesFuncs['UTF-8'];q.addData(t,'Byte');q.make();
+// ---- партнёр: QR со ссылкой (обычная камера телефона открывает Gemday с прогнозом) и сканер в программе ----
+function partData(){const c=cycCalc(),ovN=[...c.ov].filter(k=>k>=c.today).sort()[0],o={v:1,at:ymd(new Date())};
+  if(pgAct()){const r=pregCalc();if(r)o.pg={w:r.w,d:r.d,due:r.due};return o}
+  if(c.next)o.nx=c.next;if(c.late)o.lt=c.late;o.av=c.avg;o.pl=c.plen;
+  if(cyc.fert&&ovN){o.ov=ovN;const f=[...c.fert].filter(k=>k>=addD(ovN,-5)&&k<=addD(ovN,1)).sort();if(f.length)o.fw=[f[0],f[f.length-1]]}return o}
+let partUrl='';
+// разбор присланного прогноза — только проверенные даты и числа
+function partClean(o){if(!o||typeof o!=='object'||o.v!==1)return null;const d=v=>RX.date.test(v)?v:'',n=(v,a,b)=>{v=Math.round(+v);return v>=a&&v<=b?v:0},r={at:d(o.at),nx:d(o.nx),lt:n(o.lt,0,90),av:n(o.av,15,60),pl:n(o.pl,1,15),ov:d(o.ov),fw:Array.isArray(o.fw)&&d(o.fw[0])&&d(o.fw[1])?[o.fw[0],o.fw[1]]:null,name:str(o.name,40)};
+  if(o.pg&&typeof o.pg==='object')r.pg={w:n(o.pg.w,0,45),d:n(o.pg.d,0,6),due:d(o.pg.due)};return r.at?r:null}
+function partLines(p){const L=[];if(p.pg){L.push(T`🤰 Беременность: ${p.pg.w} нед. ${p.pg.d} дн.`);if(p.pg.due)L.push(T`Роды примерно: ${dayLabel(p.pg.due)}`);return L}
+  if(p.lt)L.push(T`🩸 Задержка: ${p.lt} дн.`);else if(p.nx)L.push(T`🩸 Следующие месячные: ${dayLabel(p.nx)}`+(p.pl?T` (~${p.pl} дн.)`:''));
+  if(p.ov)L.push(T`🟣 Овуляция: ${dayLabel(p.ov)}`);if(p.fw)L.push(T`🌱 Фертильные дни: ${dayLabel(p.fw[0])} – ${dayLabel(p.fw[1])}`);if(p.av)L.push(T`🔁 Средний цикл: ${p.av} дн.`);return L}
+async function partShow(b){let p=null;try{p=partClean(JSON.parse(await zipStr(String(b||''),true)))}catch(e){}
+  if(!p)return yShow(T('QR-код не распознан'),T('Попросите партнёра показать QR-код ещё раз: Цикл и здоровье → «Для партнёра: QR-код».'),[{t:T('Закрыть')}]);
+  yShow(T('💑 Прогноз цикла партнёра'),T`на ${dayLabel(p.at)}`+'\n\n'+partLines(p).join('\n')+'\n\n'+T('Будь рядом и бережен в эти дни ❤️'),[{t:T('💾 Сохранить у себя'),cta:1,on:()=>{save('cal.partner',{...p,v:1});partPaint();toast(T('💑 Прогноз партнёра сохранён — он в «Цикл и здоровье»'))}},{t:T('Закрыть')}])}
+function partPaint(){const el=$('#cycPartCard');if(!el)return;const p=partClean(load('cal.partner',null));el.hidden=!p;if(!p)return;
+  el.innerHTML=`<div class="rch"><h3 style="margin:0">💑 ${T('Прогноз партнёра')}</h3><button class="pill" id="partDel" type="button">🗑</button></div><small style="color:var(--mut)">${esc(T`от ${dayLabel(p.at)} — чтобы обновить, отсканируйте QR-код ещё раз`)}</small><div class="cinfo">${partLines(p).map(l=>`<div><span>${esc(l)}</span></div>`).join('')}</div>`;
+  $('#partDel').onclick=()=>{try{localStorage.removeItem('cal.partner')}catch(e){}partPaint()}}
+$('#cycScan').onclick=()=>scanOpen('environment');
+$('#partLink').onclick=()=>{if(!partUrl)return;if(window.CrystalAndroid&&CrystalAndroid.copy){CrystalAndroid.copy(partUrl);toast(T('🔗 Ссылка скопирована'));return}try{navigator.clipboard.writeText(partUrl);toast(T('🔗 Ссылка скопирована — отправьте партнёру'))}catch(e){}};
+$('#cycPartner').onclick=async()=>{const t=partText();$('#partTx').textContent=t;partUrl=SYNC_URL+'#cyc='+await zipStr(JSON.stringify(partData()));try{const q=qrcode(0,'M');q.addData(partUrl,'Byte');q.make();
   const n=q.getModuleCount(),m=4,px=Math.max(4,Math.floor(640/(n+m*2))),cv=$('#partCv'),g=cv.getContext('2d');cv.width=cv.height=(n+m*2)*px;g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.fillStyle='#000';
   for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))g.fillRect((k+m)*px,(r+m)*px,px,px)}finally{qrcode.stringToBytes=qrcode.stringToBytesFuncs['default']}$('#partdlg').showModal()};
 $('#partClose').onclick=()=>$('#partdlg').close();

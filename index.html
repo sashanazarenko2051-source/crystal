@@ -2,7 +2,7 @@
 <html lang="ru" data-theme="hud">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self' blob:; connect-src 'self' http://127.0.0.1:47613 https://ntfy.sh https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/ https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/; style-src 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self' blob:; connect-src 'self' http://127.0.0.1:47613 https://ntfy.sh https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/ https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/ https://tessdata.projectnaptha.com; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gemday</title>
@@ -1963,6 +1963,7 @@ function cleanNote(n){
   if(typeof n.url==='string'&&/^https?:\/\/[^\s<>"'`]{3,400}$/i.test(n.url))o.url=n.url;
   if(n.pk==='m'||n.pk==='i')o.pk=n.pk;
   if(n.bot===1)o.bot=1;
+  if(Number.isFinite(+n.upd)&&+n.upd>0)o.upd=+n.upd;
   if(type==='work'){o.start=tm(n.start);o.end=tm(n.end);o.cat=CATS[n.cat]?n.cat:'work';if([1,2,3].includes(n.job)&&o.cat==='work')o.job=n.job;{const p=+n.pay;if(Number.isFinite(p)&&p>0&&p<1e7){o.pay=Math.round(p*100)/100;o.payM=n.payM==='d'?'d':'h'}}if(!o.start||!o.end)return null}
   return o;
 }
@@ -2008,6 +2009,11 @@ function dedupeNotes(){const seen=new Set(),wk=new Map(),out=[];let rm=0;for(con
     if(drop.size){const o2=out.filter((_,i)=>!drop.has(i));out.length=0;out.push(...o2)}}
   if(rm)notes=out;return rm}
 if(dedupeNotes())save('cal.notes',notes);
+// время изменения записи (upd): при синхронизации чужая версия заменяет свою, только если она новее
+const noteSig=new Map();
+function noteSigs(stamp){const now=Date.now();for(const n of notes){const{upd,fired,...r}=n,s=JSON.stringify(r);if(stamp&&noteSig.get(n.id)!==s)n.upd=now;noteSig.set(n.id,s)}}
+function noteNewer(n,o){return (n.upd||0)>(o.upd||0)||(!n.upd&&!o.upd&&JSON.stringify(o)!==JSON.stringify(n))}
+noteSigs(false);
 // фото к записям (кадр фильма и т.п.): только JPEG data-URL, маленькие
 let IMGS=(()=>{const x=load('cal.imgs',{})||{},o={},ids=new Set(notes.map(n=>n.id));for(const k in x)if(ids.has(k)&&typeof x[k]==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]{20,120000}$/.test(x[k]))o[k]=x[k];return o})();
 const saveImgs=()=>save('cal.imgs',IMGS);
@@ -2844,7 +2850,7 @@ function renderPins(){
 $('#pinList').onclick=e=>{const g=e.target.closest('[data-pg]');if(g){const ph=load('cal.pinhide',{})||{};ph[g.dataset.pg]=!ph[g.dataset.pg];save('cal.pinhide',{m:!!ph.m,i:!!ph.i});renderPins();return}
   const p=e.target.closest('[data-pd]');if(!p)return;sel=p.dataset.pd;view=parseYmd(sel);view.setDate(1);showView('cal');setMode('m')};
 function render(){renderCal();renderList();updateNext();renderPins();if($('#v-pins').classList.contains('on'))pinsRender();if($('#v-bot').classList.contains('on'))botSavedPaint();updateWork();if($('#v-rep').classList.contains('on'))renderReport()}
-function persist(){save('cal.notes',notes);render();androidSync();linkPush()}
+function persist(){noteSigs(true);save('cal.notes',notes);render();androidSync();linkPush()}
 // приложение Android: напоминания на 45 дней вперёд и таймер — в системный будильник, придут даже при закрытом приложении
 function alarmList(withTimer){const now=Date.now(),L=[];
     for(const n of notes){if((n.type!=='rem'&&n.type!=='date')||n.rem<0)continue;
@@ -3970,7 +3976,7 @@ $('#suppSide').onclick=suppOpen;
 $('#sdlgX').onclick=()=>$('#sdlg').close();
 if(window.CrystalAndroid){document.documentElement.classList.add('android');setInterval(androidSync,30000)}
 // ---- синхронизация ПК → телефон через QR-код: данные внутри ссылки после «#» (эта часть на сервер не отправляется) ----
-const SYNC_URL='https://sashanazarenko2051-source.github.io/crystal/';
+const SYNC_URL='https://sashanazarenko2051-source.github.io/gemday/';
 const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=32768)s+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const unb64u=s=>{const b=atob(s.replace(/-/g,'+').replace(/_/g,'/')),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
 async function zipStr(str,un){const st=new Blob([un?unb64u(str):new TextEncoder().encode(str)]).stream().pipeThrough(un?new DecompressionStream('deflate-raw'):new CompressionStream('deflate-raw'));
@@ -4107,12 +4113,12 @@ async function linkPull(){
       const before=notes.length;notes=notes.filter(n=>!(del.has(n.id)&&(n.type==='rem'||n.type==='date')));if(notes.length!==before)changed=true;
       const ix=new Map(notes.map((n,i)=>[n.id,i]));
       for(const n of cleanList(p.notes,cleanNote)){if(n.type!=='rem'&&n.type!=='date')continue;
-        if(ix.has(n.id)){const o=notes[ix.get(n.id)];if(JSON.stringify(o)!==JSON.stringify(n)){notes[ix.get(n.id)]=n;changed=true}}else{ix.set(n.id,notes.length);notes.push(n);changed=true}}}
+        if(ix.has(n.id)){const o=notes[ix.get(n.id)];if(noteNewer(n,o)){notes[ix.get(n.id)]=n;changed=true}}else{ix.set(n.id,notes.length);notes.push(n);changed=true}}}
     // полное содержимое с другого устройства: берём самое свежее чужое
     for(let i=allQ.length-1;i>=0;i--){let p;try{p=JSON.parse(await zipStr(await relayGet(allQ[i],raw),true))}catch(e){continue}
       if(!p||typeof p!=='object'||p.dev===devId)continue;try{allApply(p);syncMark('in')}catch(e){}break}
     if(last!==link.last){link.last=last;save('cal.link',link)}
-    if(changed){save('cal.notes',notes);render();androidSync();linkPush.sig=JSON.stringify(remOf());save('cal.linkIds',remOf().map(n=>n.id));toast(T('🔔 Напоминания обновлены с другого устройства'))}
+    if(changed){noteSigs(false);save('cal.notes',notes);render();androidSync();linkPush.sig=JSON.stringify(remOf());save('cal.linkIds',remOf().map(n=>n.id));toast(T('🔔 Напоминания обновлены с другого устройства'))}
   }catch(e){}finally{linkBusy=false}}
 // ---- полная синхронизация связанных устройств: записи, заметки, дни, цикл, доходы/расходы, цвета дней ----
 let allT=0,allLast=0,allPend=false;
@@ -4126,7 +4132,7 @@ async function allPush(force){try{if(!link||!navigator.onLine)return;
   allPush.sig=sig;save('cal.linkAll',{n:ni,m:mi,x:xi});syncMark('out')}catch(e){}}
 function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.filter(x=>typeof x==='string'):[]);let ch=false,ex=false;
   if(Array.isArray(p.notes)){const del=ids(p.del),b=notes.length;notes=notes.filter(n=>!del.has(n.id));if(notes.length!==b)ch=true;
-    const ix=new Map(notes.map((n,i)=>[n.id,i]));for(const n of cleanList(p.notes,cleanNote)){if(ix.has(n.id)){const i=ix.get(n.id);if(S(notes[i])!==S(n)){notes[i]=n;ch=true}}else{ix.set(n.id,notes.length);notes.push(n);ch=true}}}
+    const ix=new Map(notes.map((n,i)=>[n.id,i]));for(const n of cleanList(p.notes,cleanNote)){if(ix.has(n.id)){const i=ix.get(n.id);if(noteNewer(n,notes[i])){notes[i]=n;ch=true}}else{ix.set(n.id,notes.length);notes.push(n);ch=true}}}
   if(Array.isArray(p.memos)){const del=ids(p.mdel),b=memos.length;memos=memos.filter(m=>!del.has(m.id));if(memos.length!==b)ch=true;
     const ix=new Map(memos.map((m,i)=>[m.id,i]));for(const m of cleanList(p.memos,cleanMemo)){if(ix.has(m.id)){const i=ix.get(m.id);if((m.upd||0)>(memos[i].upd||0)){memos[i]=m;ch=true}}else{ix.set(m.id,memos.length);memos.push(m);ch=true}}}
   if(p.days&&typeof p.days==='object'&&!Array.isArray(p.days))for(const k of Object.keys(p.days))if(RX.date.test(k)&&DAYCATS[p.days[k]]&&dayCats[k]!==p.days[k]){dayCats[k]=p.days[k];ch=true}
@@ -4136,7 +4142,7 @@ function allApply(p){const S=JSON.stringify,ids=a=>new Set(Array.isArray(a)?a.fi
     if(del.size&&mlog.some(m=>del.has(m.id))){save('cal.money',mlog.filter(m=>!del.has(m.id)));ex=true}}
   if(Object.keys(x).length&&mergeExtra(x))ex=true;
   if(dedupeNotes()|dedupeMemos())ch=true;
-  if(ch){save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
+  if(ch){noteSigs(false);save('cal.notes',notes);saveMemos();saveDays();render();try{renderMemos()}catch(e){}androidSync();toast(T('🔄 Записи и заметки обновлены с другого устройства'))}
   if(ex){const busy=botBusy>0||/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||'')||document.querySelector('dialog[open]');if(busy)allPend=true;else location.reload()}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){allPush()}else if(allPend&&!botBusy&&!document.querySelector('dialog[open]')){allPend=false;location.reload()}});
 // после перезагрузки (синхронизация, Android выгрузил программу) — открыть тот раздел, где был человек, если прошло меньше 30 минут
@@ -4798,7 +4804,7 @@ function botReply(r){const res=r&&botApply(r);if(!res)return botSay(esc(T('Не 
   botUndo.push({t:res.text.replace(/<[^>]+>/g,''),undo:res.undo});if(botUndo.length>20)botUndo.shift();
   botSay(T('Готово! Записал:')+'\n'+res.text,false,[[T('🗑 Удалить запись'),()=>{res.undo();botUndo=botUndo.filter(x=>x.undo!==res.undo);botSay(esc(T('🗑 Удалено')))}],[T('Открыть'),()=>showView(r.kind==='money'?'money':r.kind==='memo'?'notes':'cal')]])}
 // ---- распознавание текста на фото (tesseract.js, на устройстве) ----
-const OCRV='5.1.1',OCRL={ru:'rus',uk:'ukr',en:'eng',cs:'ces',sk:'slk',de:'deu',pl:'pol',fr:'fra',it:'ita',es:'spa',pt:'por',nl:'nld',ro:'ron',hu:'hun',tr:'tur'};
+const OCRV='5.1.1'/* при смене версии поменять и пути в CSP (строка 5) */,OCRL={ru:'rus',uk:'ukr',en:'eng',cs:'ces',sk:'slk',de:'deu',pl:'pol',fr:'fra',it:'ita',es:'spa',pt:'por',nl:'nld',ro:'ron',hu:'hun',tr:'tur'};
 let ocrW=null;
 async function ocrTitle(c,b){
   const pd=Math.round((b.y1-b.y0)*.35),x0=Math.max(0,b.x0-pd),y0=Math.max(0,b.y0-pd),w=Math.min(c.width,b.x1+pd)-x0,h=Math.min(c.height,b.y1+pd)-y0;if(w<10||h<6)return'';
